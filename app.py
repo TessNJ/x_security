@@ -67,7 +67,9 @@ def login(lan = "english"):
     x.default_language = lan
 
     if request.method == "GET":
-        message = request.args.get("message", "")
+        # message = request.args.get("message", "")
+        message = session.get("message", "")
+        session["message"] = ""
 
         if session.get("user", ""): return redirect(url_for("home"))
         return render_template("login.html", lan=lan, message=message)
@@ -1000,8 +1002,10 @@ def change_password(lan = "english"):
             db.commit()
             if cursor.rowcount != 1: raise Exception("Link is invalid. Request a new link", 400)
 
+            session["message"] = "Your password has been changed"
+
             return f"""
-            <browser mix-redirect="/login?message=Your password has been changed"></browser>
+            <browser mix-redirect="/login"></browser>
             """
 
         except Exception as ex:
