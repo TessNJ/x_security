@@ -1,0 +1,267 @@
+{
+    "login": {
+        "english": "login",
+        "danish": "log ind",
+        "spanish": "entrar"
+    },
+    "email": {
+        "english": "email",
+        "danish": "email",
+        "spanish": "Correo electrónico"
+    },
+    "first_name": {
+        "english": "first name",
+        "danish": "fornavn",
+        "spanish": "nombre"
+    },
+    "username": {
+        "english": "username",
+        "danish": "brugernavn",
+        "spanish": "nombre de usuario"
+    },
+    "password": {
+        "english": "password",
+        "danish": "kodeord",
+        "spanish": "clave"
+    },
+    "last_name": {
+        "english": "last name",
+        "danish": "efternavn",
+        "spanish": "Apellido"
+    },
+    "dont_have_an_account": {
+        "english": "don't have an account",
+        "danish": "har du ikke en konto",
+        "spanish": "No tienes cuenta"
+    },
+    "home": {
+        "english": "home",
+        "danish": "hjem",
+        "spanish": "casa"
+    },
+    "explore": {
+        "english": "explore",
+        "danish": "udforsk",
+        "spanish": "explorar"
+    },
+    "notifications": {
+        "english": "notifications",
+        "danish": "notifikationer",
+        "spanish": "notificaciones"
+    },
+    "messages": {
+        "english": "messages",
+        "danish": "beskeder",
+        "spanish": "mensajes"
+    },
+    "bookmarks": {
+        "english": "bookmarks",
+        "danish": "bogmærker",
+        "spanish": "marcadores"
+    },
+    "jobs": {
+        "english": "jobs",
+        "danish": "jobs",
+        "spanish": "empleos"
+    },
+    "communities": {
+        "english": "communities",
+        "danish": "fællesskaber",
+        "spanish": "communidades"
+    },
+    "premium": {
+        "english": "premium",
+        "danish": "premium",
+        "spanish": "la prima"
+    },
+    "profile": {
+        "english": "profile",
+        "danish": "profil",
+        "spanish": "perfil"
+    },
+    "more": {
+        "english": "more",
+        "danish": "mere",
+        "spanish": "más"
+    },
+    "logout": {
+        "english": "logout",
+        "danish": "log ud",
+        "spanish": "cerrar sesión"
+    },
+    "update_profile": {
+        "english": "update profile",
+        "danish": "opdater profil",
+        "spanish": "actualizar perfil"
+    },
+    "characters": {
+        "english": "characters",
+        "danish": "tegn",
+        "spanish": "caracteres"
+    },
+    "to": {
+        "english": "to",
+        "danish": "til",
+        "spanish": "a"
+    },
+    "update_successful": {
+        "english": "profile updated successfully",
+        "danish": "profilen blev opdateret",
+        "spanish": "perfil actualizado exitosamente"
+    },
+    "invalid_email": {
+        "english": "invalid email",
+        "danish": "ugyldig e-mail",
+        "spanish": "correo electrónico inválido"
+    },
+    "invalid_password": {
+        "english": "invalid password",
+        "danish": "ugyldig pinkode",
+        "spanish": "clave inválida"
+    },
+    "invalid_credentials": {
+        "english": "invalid credentials",
+        "danish": "ugyldige loginoplysninger",
+        "spanish": "información incorrecta"
+    },
+    "user_not_verified": {
+        "english": "user not verified. Please check your email",
+        "danish": "bruger ikke verificeret. Tjek venligst din e-mail",
+        "spanish": "usuario no verificado. Por favor, chequéa tu email"
+    },
+    "user_not_found": {
+        "english": "user not found",
+        "danish": "bruger ikke fundet",
+        "spanish": "usuario no encontrado"
+    },
+    "email_registered": {
+        "english": "email already registered",
+        "danish": "emailen er allerede registreret",
+        "spanish": "correo electrónico ya registrado"
+    },
+    "username_registered": {
+        "english": "username already registered",
+        "danish": "brugernavnet er allerede registreret",
+        "spanish": "nombre de usuario ya registrado"
+    },
+    "system_under_maintenance": {
+        "english": "system under maintenance",
+        "danish": "system under vedligeholdelse",
+        "spanish": "sistema en mantenimiento"
+    },
+    "twitter_maintenance": {
+        "english": "Twitter exception - Database under maintenance",
+        "danish": "Twitter undtagelse - Databasen er under vedligeholdelse",
+        "spanish": "excepción de Twitter - La base de datos está en mantenimiento"
+    },
+    "twitter_password": {
+        "english": "Twitter exception - Invalid confirm password",
+        "danish": "Twitter undtagelse - Ugyldig bekræftelse af kodeord",
+        "spanish": "excepción de Twitter - contraseña de confirmación no válida"
+    },
+    "twitter_uuid4_dashes": {
+        "english": "Twitter exception - Invalid uuid4",
+        "danish": "Twitter undtagelse - Ugyldig uuid4",
+        "spanish": "excepción de Twitter - uuid4 no válido"
+    },
+    "twitter_uuid4": {
+        "english": "Twitter exception - Invalid uuid4 without dashes",
+        "danish": "Twitter undtagelse - Ugyldig uuid4 uden bindestreg",
+        "spanish": "excepción de Twitter- uuid4 no válido sin guiones"
+    },
+    "post": {
+        "english": "post",
+        "danish": "publicer",
+        "spanish": "publicar"
+    },
+    "search": {
+        "english": "search",
+        "danish": "søg",
+        "spanish": "buscar"
+    },
+    "following": {
+        "english": "following",
+        "danish": "følger",
+        "spanish": "siguiente"
+    },
+    "forgot_password": {
+        "english": "forgotten your password",
+        "danish": "har du glemt dit kodeord",
+        "spanish": "olvidaste tu clave"
+    },
+    "follow": {
+        "english": "follow",
+        "danish": "følg",
+        "spanish": "seguir"
+    },
+    "unfollow": {
+        "english": "unfollow",
+        "danish": "følger",
+        "spanish": "singue"
+    },
+    "set_new_password": {
+        "english": "set new password",
+        "danish": "vælg nyt kodeord",
+        "spanish": "establecer nueva contraseña"
+    },
+    "update_password": {
+        "english": "update password",
+        "danish": "opdater adgangskode",
+        "spanish": "actualizar contraseña"
+    },
+    "password_updated": {
+        "english": "password updated",
+        "danish": "adgangskode opdateret",
+        "spanish": "contraseña actualizada"
+    },
+    "updating": {
+        "english": "updating",
+        "danish": "opdaterer",
+        "spanish": "actualizando"
+    },
+    "password_recovery": {
+        "english": "password recovery",
+        "danish": "gendannelse af adgangskode",
+        "spanish": "recuperación de contraseña"
+    },
+    "requested_password_recovery": {
+        "english": "you have recenly requested password recovery",
+        "danish": "du har for nylig anmodet om gendannelse af adgangskode",
+        "spanish": "recientemente solicitaste la recuperación de contraseña."
+    },
+    "email_to_set_password": {
+        "english": "to set a new password please",
+        "danish": "for at vælge en ny adgangskode skal du",
+        "spanish": "para establecer una nueva contraseña, por favor"
+    },
+    "email_did_not_request": {
+        "english": "if you did not make this request, you can ignore this email.",
+        "danish": "hvis du ikke har anmodet om et ny kodeord, skal du ignorere denne e-mail.",
+        "spanish": "si usted no realizó esta solicitud, puede ignorar este correo electrónico."
+    },
+    "email_follow_link": {
+        "english": "follow this link",
+        "danish": "følg dette link",
+        "spanish": "sigue este enlace"
+    },
+    "request_new_password": {
+        "english": "request a new password",
+        "danish": "anmod om ny adgangskode",
+        "spanish": "solicitar una nueva contraseña"
+    },
+    "password_requested": {
+        "english": "password requested",
+        "danish": "adgangskode anmodet",
+        "spanish": "contraseña solicitada"
+    },
+    "requesting_password_email": {
+        "english": "requesting",
+        "danish": "anmoder",
+        "spanish": "solicitando"
+    },
+    "no_following": {
+        "english": "you are not following anyone",
+        "danish": "du følger ikke nogen",
+        "spanish": "no estás siguiendo a nadie"
+    }
+}

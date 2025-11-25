@@ -1,0 +1,15 @@
+<div class="d-flex flex-row ma-2">
+    <div class="w-auto">
+        <img src="{{ url_for('static', filename='uploads/'~(session['user']['user_avatar_path'] if session['user']['user_avatar_path'] else 'default.jpg')) }}" class="w-8 rounded-full">
+    </div>
+    {% include "___post_container.html" %}
+</div>
+
+<div id="posts">
+    <div id="tweets">
+        {% for tweet in tweets: %}
+        {% include "_tweet.html" %}
+        {% endfor %}
+    </div>
+    {% include "___show_more.html" %}
+</div>

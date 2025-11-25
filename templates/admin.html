@@ -1,0 +1,44 @@
+
+{% include "_header.html" %}
+
+<main class="x-landing">
+
+    <div class="x-dialog__content">
+
+      <div class="d-flex gap-3">
+
+        {% if lan != "english": %}
+        <a href="/admin/english">
+          <img src="/static/images/flag_english.png" class="w-5">
+        </a>
+        {% endif %}
+
+        {% if lan != "danish": %}
+        <a href="/admin/danish">
+          <img src="/static/images/flag_danish.png" class="w-5">
+        </a>
+        {% endif %}
+
+        {% if lan != "spanish": %}
+        <a href="/admin/spanish">
+          <img src="/static/images/flag_spanish.png" class="w-5">
+        </a>
+        {% endif %}        
+
+      </div>
+
+
+        <h2 id="adminTitle">Log in to X</h2>
+        <form action="/admin/{{ lan }}" mix-post class="x-dialog__form" autocomplete="off">
+            <input name="user_email" type="text" placeholder="{{x.lans('email')}}" mix-check="{{ x.REGEX_EMAIL }}">
+            <input name="user_password" type="password" placeholder="{{x.lans('password')}}">
+            <button class="x-dialog__btn" mix-default="login" mix-await="Logging in ...">
+                {{x.lans("login")}}
+            </button>
+        </form>
+
+  </div>
+
+</main>
+
+{% include "_footer.html" %}
