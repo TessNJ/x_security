@@ -1,0 +1,74 @@
+
+<form id="post_{{tweet.post_pk}}" action="/api-update-post?key={{tweet.post_pk}}" value=imgValue name="{{tweet.post_pk}}" mix-post class="d-flex flex-col w-full ml-2">
+    <textarea name="post" placeholder="What is new ?" 
+    class="w-full outline-1 outline-s-solid outline-c-gray:+50 pa-2">{{tweet.post_message}}</textarea>
+
+    {% if tweet.post_image_path %}
+    <img id="image_{{tweet.post_pk}}"
+    src="{{ url_for('static', filename='images/'~tweet.post_image_path ) }}"
+    class="w-80" alt="Profile Picture">
+    {% else %}
+    <img id="image_{{tweet.post_pk}}"
+    src="{{ url_for('static', filename='images/default.jpg' ) }}"
+    class="w-80" alt="Profile Picture" style="display: none;" class="hide">
+    {% endif %}
+
+    <input type="hidden" id="hidden_{{tweet.post_pk}}" name="hidden_{{tweet.post_pk}}" value="originalIMG">
+
+    <input name="post_image_{{tweet.post_pk}}" id="post_image_{{tweet.post_pk}}" type="file" accept="image/*" onchange="show_post_preview()">
+    <button type="button" onclick="removeImage()" id="button_{{tweet.post_pk}}">delete image</button>
+
+    <button href="/api-cancel-post?key={{tweet.post_pk}}" mix-get 
+    class="w-auto ml-auto mt-2 bg-c-black text-c-white py-2 px-12 rounded-xl" type="button">
+        cancel
+    </button>   
+    <button mix-default="Post" mix-await="Posting ..." 
+    class="w-auto ml-auto mt-2 bg-c-black text-c-white py-2 px-12 rounded-xl" type="submit">
+        {{x.lans('post')}}
+    </button>   
+</form>
+
+
+<script>
+    const imgDeleted = document.getElementById('hidden_{{tweet.post_pk}}')
+    const fileInput = document.getElementById('post_image_{{tweet.post_pk}}');
+    imagePreview = document.getElementById('image_{{tweet.post_pk}}');
+    if (imagePreview.classList.contains('hide')) {
+        imagePreview.classList.remove('hide')
+        imagePreview.style.display = 'block';
+        imagePreview.style.visibility = 'visible';
+    }
+    
+    fileInput.addEventListener('change', function (event) {
+        const file = event.target.files[0]; // Get the first file
+        if (file) {
+            const reader = new FileReader();
+            
+            reader.onload = function (e) {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block'; // Show the image
+            };
+
+            reader.readAsDataURL(file); // Read the file as a data URL
+        } else {
+            imagePreview.style.display = 'none'; // Hide the image if no file selected
+        }
+    });
+</script>
+
+<script>
+    imagePreview = document.getElementById('image_{{tweet.post_pk}}');
+    const button = document.getElementById('button_{{tweet.post_pk}}');
+
+    button.fileInput.addEventListener('click', function (event) {
+        id = event.target.parentNode.name;
+        const imagePreview = document.getElementById('image_'+id);
+
+        imagePreview.src = "{{ url_for('static', filename='images/default.jpg' ) }}"
+
+        imagePreview.classList.add('hidden');
+
+        imagePreview.style.display = "none";
+
+    });
+</script>

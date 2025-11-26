@@ -140,8 +140,9 @@ POST_MIN_LEN = 2
 POST_MAX_LEN = 250
 REGEX_POST = f"^.{{{POST_MIN_LEN},{POST_MAX_LEN}}}$"
 def validate_post(post = ""):
+    error = f"""post must be {POST_MIN_LEN} to {POST_MAX_LEN} characters"""
     post = post.strip()
-    if not re.match(REGEX_POST, post): raise Exception("x-error post", 400)
+    if not re.match(REGEX_POST, post): raise Exception(error, 400)
     return post
 
 ##############################

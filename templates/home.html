@@ -150,6 +150,46 @@
             }
         };
     </script>
+        <script>
+        function show_post_preview() {
+            id = event.target.parentNode.name;
+
+            const imagePreview = document.getElementById('image_'+id);
+            const imgDeleted = document.getElementById('hidden_'+id)
+
+            const file = event.target.files[0]; // Get the first file
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.alt = e.target.result;
+                    imagePreview.style.display = 'block'; // Show the image
+                    imgDeleted.value = "newIMG"
+                };
+
+                reader.readAsDataURL(file); // Read the file as a data URL
+            } else {
+                imagePreview.style.display = 'none'; // Hide the image if no file selected
+            }
+        };
+    </script>
+    <script>
+        function removeImage(target) {
+            id = event.target.parentNode.name;
+            const imagePreview = document.getElementById('image_'+id);
+            const fileInput = document.getElementById('post_image_'+id)
+            const imgDeleted = document.getElementById('hidden_'+id)
+
+            fileInput.value = null;
+            imagePreview.src = "{{ url_for('static', filename='images/default.jpg' ) }}";
+
+            imagePreview.classList.add('hide');
+            imagePreview.style.display = 'none';
+
+            imgDeleted.value = "deleted"
+        }
+    </script>
 
 </body>
 </html>

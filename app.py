@@ -30,6 +30,9 @@ Session(app)
 upload_folder = "./static/uploads"
 app.config['UPLOAD_FOLDER'] = upload_folder
 
+post_upload_folder = "./static/images"
+app.config['POST_UPLOAD_FOLDER'] = post_upload_folder
+
 upload_folder = "/home/TereseNJ/mysite/static/uploads" if x.python_domain else "./static/uploads"
 app.config['ADMIN_EMAIL'] = os.getenv('ADMIN_EMAIL')
 app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
@@ -388,8 +391,15 @@ def api_create_post():
         if not user: return "invalid user"
         user_pk = user["user_pk"]
         post = x.validate_post(request.form.get("post", ""))
+
+        uploaded_file = request.files.get('post_image_attach', "")
+        _, ext = os.path.splitext(uploaded_file.filename)
+        post_image_path = uuid.uuid4().hex + ext
+        file_path = os.path.join(app.config['POST_UPLOAD_FOLDER'],  post_image_path)
+        uploaded_file.save(file_path)
+
         post_pk = uuid.uuid4().hex
-        post_image_path = ""
+        # post_image_path = ""
         post_created_at = int(time.time())
         post_updated_at = 0
         post_deleted_at = 0
@@ -412,7 +422,8 @@ def api_create_post():
             "post_total_likes": 0,
             "post_total_comments":0,
             "post_liked": False,
-            "post_pk": post_pk
+            "post_pk": post_pk,
+            "post_image_path" : post_image_path
         }
         html_post_container = render_template("___post_container.html")
         html_post = render_template("_tweet.html", tweet=tweet)
@@ -438,7 +449,128 @@ def api_create_post():
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
+##############################
+@app.route("/api-update-post", methods=["GET","POST"])
+@x.no_cache
+def api_update_post():
+    if request.method == "GET":
+        try:
+            post_pk = request.args.get("key", "")
 
+            db, cursor = x.db()
+            q="SELECT * FROM posts WHERE post_pk = %s"
+            cursor.execute(q, (post_pk,))
+            tweet = cursor.fetchone()
+
+            if tweet["post_deleted_at"] != 0 : raise Exception("post is deleted", 400)
+                # toast_error = render_template("___toast_error.html", message="post is deleted")
+                # return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+
+            post_edit_container = render_template("___tweet-edit.html", tweet=tweet)
+            return f"""
+                <browser mix-replace="#post_{tweet['post_pk']}">{post_edit_container}</browser>
+            """
+        except Exception as ex:
+            if ex.args[1] == 400:
+                toast_error = render_template("___toast_error.html", message=ex.args[0])
+                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+            return ex
+        finally:
+            if "cursor" in locals(): cursor.close()
+            if "db" in locals(): db.close()
+    if request.method == "POST":
+        try:
+            post_pk = request.args.get("key", "")
+            
+            db, cursor = x.db()
+            q="SELECT * FROM posts WHERE post_pk = %s"
+            cursor.execute(q, (post_pk,))
+            tweet = cursor.fetchone()
+
+            if tweet["post_deleted_at"] != 0 : raise Exception("post is deleted", 400)
+
+            imgState = request.form.get("hidden_"+tweet["post_pk"], "")
+
+            ######### img
+            image_path = tweet["post_image_path"]
+            uploaded_file = request.files.get('post_image_'+tweet["post_pk"], "default.jpg")
+
+            if imgState == "newIMG" :
+                _, ext = os.path.splitext(uploaded_file.filename)
+                new_name = uuid.uuid4().hex + ext
+                file_path = os.path.join(app.config['POST_UPLOAD_FOLDER'], new_name)
+                uploaded_file.save(file_path)
+                image_path = new_name
+                ic(" default or none")
+                ic(uploaded_file)
+            elif imgState == "deleted":
+                image_path = ""
+                ic(" from file")
+            post_updated_at = int(time.time())
+            # ic(image_path)
+
+            ##### message
+            post_message = x.validate_post(request.form.get("post", ""))
+            if not post_message : raise Exception("Error", 400)
+
+            q = "UPDATE posts SET post_message = %s, post_image_path = %s, post_updated_at = %s WHERE post_pk = %s"
+            cursor.execute(q, (post_message, image_path, post_updated_at, tweet["post_pk"] ))
+            db.commit()
+            if cursor.rowcount != 1: raise Exception("post couldnt update", 400)
+
+            q="SELECT * FROM posts WHERE post_pk = %s"
+            cursor.execute(q, (post_pk,))
+            tweet = cursor.fetchone()
+
+            # ic(tweet)
+            # return "ok"
+            post_edit_container = render_template("___tweet-display.html", tweet=tweet)
+            return f"""
+                <browser mix-replace="#post_{tweet['post_pk']}">{post_edit_container}</browser>
+            """
+        except Exception as ex:
+            if ex.args[1] == 400:
+                toast_error = render_template("___toast_error.html", message=ex.args[0])
+                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+            return ex
+        finally:
+            if "cursor" in locals(): cursor.close()
+            if "db" in locals(): db.close()
+        
+@app.route("/api-cancel-post", methods=["GET"])
+@x.no_cache
+def api_cancel_post():
+    try:
+        post_pk = request.args.get("key", "")
+        # ic(post_pk)
+
+        db, cursor = x.db()
+        q="SELECT * FROM posts WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
+        tweet = cursor.fetchone()
+        # ic(tweet)
+        post_edit_container = render_template("___tweet-display.html", tweet=tweet)
+        return f"""
+            <browser mix-replace="#post_{tweet['post_pk']}">{post_edit_container}</browser>
+        """
+    except Exception as ex:
+        ic(ex)
+        return ex
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+@app.route("/api-delete-post", methods=["GET"])
+@x.no_cache
+def api_delete_post():
+    try:
+        pass
+    except Exception as ex:
+        ic(ex)
+        return "error"
+    finally:
+        pass
 
 ##############################
 @app.route("/api-update-profile", methods=["POST"])
