@@ -1,0 +1,17 @@
+<article class="comment" id="post_full_{{comment.post_pk}}">
+    <img src="{{ url_for('static', filename='uploads/'~(comment.user_avatar_path if comment.user_avatar_path else 'default.jpg')) }}"
+        alt="Profile Picture" class="w-8 h-8 rounded-full">
+    <div class="post-content">
+        <div class="post-header">
+            <span class="name">
+                {{ comment.user_first_name }}
+                {{ comment.user_last_name }}
+            </span>
+            <span class="handle">@{{ comment.user_username }}</span> · <span class="time">1d</span>
+        </div>
+
+        <p class="text">
+        {{ comment.comment_message }}
+        </p>
+    </div>
+</article>

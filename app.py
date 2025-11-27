@@ -133,8 +133,6 @@ def logout():
     except Exception as ex:
         ic(ex)
         return "error"
-    finally:
-        pass
 
 ##############################
 @app.route("/signup", methods=["GET", "POST"])
@@ -225,10 +223,14 @@ def verify_account():
         ic(ex)
         if "db" in locals(): db.rollback()
         # User errors
-        if ex.args[1] == 400: return ex.args[0], 400
+        
+        if ex.args[1] == 400:
+                toast_error = render_template("___toast_error.html", message=ex.args[0])
+                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
         # System or developer error
-        return "Cannot verify user"
+        toast_error = render_template("___toast_error.html", message="Cannot verify user")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
         if "cursor" in locals(): cursor.close()
@@ -244,11 +246,7 @@ def request_password(lan="english"):
     x.default_language = lan
 
     if request.method == "GET":
-        try:
-            return render_template("request_password.html", lan=x.default_language, x=x)
-        except Exception as ex:
-            ic(ex)
-            return "email link invalid"
+        return render_template("request_password.html", lan=x.default_language, x=x)
 
     if request.method == "POST":
         try:
@@ -285,8 +283,13 @@ def request_password(lan="english"):
             """
             
         except Exception as ex:
-            ic(ex)
-            return "error"
+            if ex.args[1] == 400:
+                toast_error = render_template("___toast_error.html", message=ex.args[0])
+                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+            # System or developer error
+            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
             if "cursor" in locals(): cursor.close()
             if "db" in locals(): db.close()
@@ -320,10 +323,14 @@ def change_password(lan = "english"):
             ic(ex)
             if "db" in locals(): db.rollback()
             # User errors
-            if ex.args[1] == 400: return ex.args[0], 400
+
+            if ex.args[1] == 400:
+                toast_error = render_template("___toast_error.html", message=ex.args[0])
+                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
             # System or developer error
-            return "link invalid"
+            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
         finally:
             if "cursor" in locals(): cursor.close()
@@ -352,10 +359,14 @@ def change_password(lan = "english"):
             ic(ex)
             if "db" in locals(): db.rollback()
             # User errors
-            if ex.args[1] == 400: return ex.args[0], 400
+
+            if ex.args[1] == 400:
+                toast_error = render_template("___toast_error.html", message=ex.args[0])
+                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
             # System or developer error
-            return "invalid email"
+            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
         finally: 
             if "cursor" in locals(): cursor.close()
@@ -405,7 +416,13 @@ def home(lan="english"):
         return render_template("home.html", tweets=tweets, trends=trends, suggestions=suggestions, user=user, lan=lan, x=x, profileInfo=profileInfo, next_page=next_page)
     except Exception as ex:
         ic(ex)
-        return ex
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -422,18 +439,31 @@ def home_comp():
         lan = session["user"]["user_language"]
         if not user: return "error" #maybe not needed
         db, cursor = x.db()
-        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk ORDER BY RAND() LIMIT 5"
+        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
         cursor.execute(q)
         tweets = cursor.fetchall()
+        # ic(tweets)
+        
+        for tweet in tweets:
+            q="SELECT EXISTS(SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s) AS liked"
+            cursor.execute(q, (user["user_pk"], tweet["post_pk"]))
+            tweet["liked"] = bool(cursor.fetchone()["liked"])
         # ic(tweets)
 
         html = render_template("_home_comp.html", tweets=tweets)
         return f"""<mixhtml mix-update="main">{ html }</mixhtml>"""
     except Exception as ex:
         ic(ex)
-        return "error"
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        pass
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
 
 
 ##############################
@@ -459,7 +489,15 @@ def profile():
         return f"""<browser mix-update="main">{ profile_html }</browser>"""
     except Exception as ex:
         ic(ex)
-        return "error"
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
 
 
 ##############################
@@ -516,6 +554,9 @@ def api_update_profile():
         """, 200
     except Exception as ex:
         ic(ex)
+        ic(ex)
+        if "db" in locals(): db.rollback()
+
         # User errors
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
@@ -580,7 +621,14 @@ def delete_user() :
 
     except Exception as ex:
         ic(ex)
-        return "error"
+        if "db" in locals(): db.rollback()
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -619,7 +667,13 @@ def api_get_tweets():
         """
     except Exception as ex:
         ic(ex)
-        return "error"
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -716,10 +770,14 @@ def api_update_post():
                 <browser mix-replace="#post_{tweet['post_pk']}">{post_edit_container}</browser>
             """
         except Exception as ex:
+            ic(ex)
+
             if ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
-            return ex
+                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
             if "cursor" in locals(): cursor.close()
             if "db" in locals(): db.close()
@@ -774,10 +832,15 @@ def api_update_post():
                 <browser mix-replace="#post_{tweet['post_pk']}">{post_edit_container}</browser>
             """
         except Exception as ex:
+            ic(ex)
+            if "db" in locals(): db.rollback()
+
             if ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
-            return ex
+
+            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
             if "cursor" in locals(): cursor.close()
             if "db" in locals(): db.close()
@@ -804,7 +867,9 @@ def api_cancel_post():
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
-        return ex
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -830,7 +895,13 @@ def api_delete_post():
             """
         except Exception as ex:
             ic(ex)
-            return ex
+
+            if ex.args[1] == 400:
+                toast_error = render_template("___toast_error.html", message=ex.args[0])
+                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
             if "cursor" in locals(): cursor.close()
             if "db" in locals(): db.close()
@@ -859,13 +930,122 @@ def api_delete_post():
                 
         except Exception as ex:
             ic(ex)
-            return "error"
+            if "db" in locals(): db.rollback()
+
+            if ex.args[1] == 400:
+                toast_error = render_template("___toast_error.html", message=ex.args[0])
+                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
             if "cursor" in locals(): cursor.close()
             if "db" in locals(): db.close()
 
+###########################
+@app.route("/show-comments", methods=["GET"])
+@x.no_cache
+def show_comments():
+    try:
+        post_pk = request.args.get("key", "")
 
-###########################3
+        db, cursor = x.db()
+
+        q="SELECT * FROM posts WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
+        post = cursor.fetchone()
+
+        if post["post_deleted_at"] != 0 : raise Exception("post is deleted", 400)
+
+        q = "SELECT * FROM users JOIN comments ON user_pk = comment_user_fk WHERE comment_deleted_at = 0 AND post_fk = %s ORDER BY comment_created_at DESC LIMIT 0, 5"
+        cursor.execute(q, (post_pk,))
+        comments = cursor.fetchall()
+        ic(comments)
+
+        show_comments = render_template("_comments_container.html", comments=comments, tweet=post)
+
+        return f"""
+        <browser mix-update="#comments_{post_pk}">{show_comments}</browser>
+        """
+    except Exception as ex:
+        ic(ex)
+        if "db" in locals(): db.rollback()
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+#####################
+@app.route("/api-add-comments", methods=["POST"])
+@x.no_cache
+def create_comments():
+    try:
+        post_pk = request.args.get("key", "")
+        
+        db, cursor = x.db()
+        q="SELECT * FROM posts WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
+        post = cursor.fetchone()
+
+        if post["post_deleted_at"] != 0 : raise Exception("post is deleted", 400)
+
+        user = session.get("user", "")
+        comment_message = x.validate_post(request.form.get("comment", ""))
+
+        comment_created_at = int(time.time())
+        comment_updated_at = 0
+        comment_deleted_at = 0
+        comment_pk = uuid.uuid4().hex
+
+        q = "INSERT INTO comments VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        cursor.execute(q, (comment_pk, user["user_pk"], comment_message, post_pk, comment_created_at, comment_updated_at, comment_deleted_at))
+        db.commit()
+        # q = "SELECT * FROM users JOIN comments ON user_pk = comment_user_fk WHERE comment_deleted_at = 0 AND post_fk = %s ORDER BY comment_created_at DESC LIMIT 0, 5"
+        # cursor.execute(q, (post_pk,))
+        # comments = cursor.fetchall()
+        # ic(comments)
+        comment = {
+            "user_first_name": user["user_first_name"],
+            "user_last_name": user["user_last_name"],
+            "user_username": user["user_username"],
+            "user_avatar_path": user["user_avatar_path"],
+            "comment_message": comment_message,
+            "comment_pk": comment_pk,
+            "post_fk": post_pk,
+            "comment_user_fk": user["user_pk"],
+            "comment_created_at" : comment_created_at,
+            "comment_updated_at" : comment_updated_at,
+            "comment_deleted_at" : comment_deleted_at
+        }
+
+        show_comments = render_template("___comment.html", comment=comment, tweet=post)
+
+        return f"""
+        <browser mix-top="#view_comments_{post_pk}">{show_comments}</browser>
+        <browser mix-remove="#no_comments_{post_pk}"></browser>
+        """
+    except Exception as ex:
+        ic(ex)
+        if "db" in locals(): db.rollback()
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+###########################
 @app.post("/follow")
 @x.no_cache
 def create_follow():
@@ -910,6 +1090,14 @@ def create_follow():
         
     except Exception as ex:
         ic(ex)
+        if "db" in locals(): db.rollback()
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -958,6 +1146,14 @@ def remove_follow():
 
     except Exception as ex:
         ic(ex)
+        if "db" in locals(): db.rollback()
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -979,7 +1175,13 @@ def following():
         return f"""<mixhtml mix-update="main">{ following_html }</mixhtml>"""
     except Exception as ex:
         ic(ex)
-        return "error"
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1007,8 +1209,6 @@ def api_search():
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
-
-
 
 ###########################3
 @app.post("/like")
@@ -1065,7 +1265,14 @@ def create_like():
         
     except Exception as ex:
         ic(ex)
-        return "error"
+        if "db" in locals(): db.rollback()
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1125,6 +1332,14 @@ def remove_like():
         """
     except Exception as ex:
         ic(ex)
+        if "db" in locals(): db.rollback()
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()

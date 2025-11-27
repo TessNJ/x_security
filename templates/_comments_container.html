@@ -1,0 +1,13 @@
+{% include "___create_comment.html"%}
+
+<div id="view_comments_{{tweet.post_pk}}">
+    {%if comments|length >= 1%}
+    {% for comment in comments: %}
+    {% include "___comment.html"%}
+    {% endfor %}
+    
+    {%else%}
+
+    <p id="no_comments_{{tweet.post_pk}}">No comments on post</p>
+    {%endif%}
+</div>
