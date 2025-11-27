@@ -1,6 +1,7 @@
 from flask import Flask, request, make_response, render_template, session, redirect, url_for
 import mysql.connector
 import re
+import time
 import dictionary
 import json
 import os
@@ -195,3 +196,29 @@ def redirect_index_mixhtlm():
 ##############################
 def redirect_index_flask():
     return redirect(url_for("login"))
+
+#############################
+MINUTE_SECOND = 60
+HOUR_SECOND = 3600
+DAY_SECOND = 86400
+WEEK_SECOND = 604800
+MONTH_SECOND = 2629743
+YEAR_SECOND = 31556926
+def convert_time(value):
+    differnce = int(time.time()) - value
+    if differnce < 1: 
+        return f"""{-differnce} sec""" #now second
+    if 1 < differnce < MINUTE_SECOND : 
+        return f"""{differnce} sec""" #second
+    if MINUTE_SECOND < differnce < HOUR_SECOND : 
+        return f"""{round(differnce/MINUTE_SECOND)} min""" #minuts
+    if HOUR_SECOND < differnce < DAY_SECOND : 
+        return f"""{round(differnce/HOUR_SECOND)}h""" #hours
+    if DAY_SECOND < differnce < WEEK_SECOND : 
+        return f"""{round(differnce/DAY_SECOND)}d""" #days
+    if WEEK_SECOND < differnce < MONTH_SECOND : 
+        return f"""{round(differnce/WEEK_SECOND)}w""" #weeks
+    if MONTH_SECOND < differnce < YEAR_SECOND : 
+        return f"""{round(differnce/MONTH_SECOND)}m""" #months
+    if YEAR_SECOND < differnce : 
+        return f"""{round(differnce/YEAR_SECOND)}y""" #years

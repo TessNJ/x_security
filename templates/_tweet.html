@@ -8,23 +8,24 @@
                     {{ tweet.user_first_name }}
                     {{ tweet.user_last_name }}
                 </span>
-                <span class="handle">@{{ tweet.user_username }}</span> · <span class="time">1d</span>
+                <span class="handle">@{{ tweet.user_username }}</span> · <span class="time">{{x.convert_time(tweet.post_created_at)}}</span>
             </div>
 
             {% include "___tweet-display.html"%}
 
             <div class="post-actions">
                 <span class="d-flex flex-row a-items-center">
-                    <button href="/show-comments?key={{tweet.post_pk}}" mix-get type="button" class="action">
-                        <i class="fa-regular fa-comment" style="pointer-events: none;"></i>
-                    </button>
+                    {% include "___show_comments.html" %}
                     <span id="comment_amount_{{tweet.post_pk}}">
                         {{tweet.post_total_comments}}
                     </span>
                 </span>
-                <span class="action"><i class="fa-solid fa-retweet"></i> 5</span>
+                
+                {% if tweet.user_username != session["user"]["user_username"]%}
+                <span class="action"><i class="fa-solid fa-retweet"></i> 2</span>
+                {%endif%}
 
-
+                {% if tweet.user_username != session["user"]["user_username"]%}
                 <span class="d-flex flex-row a-items-center">
                     {% if tweet.liked: %}
                     {% include "___button_unlike_tweet.html" %}
@@ -35,7 +36,7 @@
                         {{tweet.post_total_likes}}
                     </span>
                 </span>
-
+                {%endif%}
 
                 <span class="action"><i class="fa-solid fa-chart-simple"></i> 230</span>
                 <span class="action"><i class="fa-solid fa-share"></i></span>

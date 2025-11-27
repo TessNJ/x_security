@@ -7,7 +7,7 @@
                 {{ tweet.user_first_name }}
                 {{ tweet.user_last_name }}
             </span>
-            <span class="handle">@{{ tweet.user_username }}</span> · <span class="time">1d</span>
+            <span class="handle">@{{ tweet.user_username }}</span> · <span class="time">{{x.convert_time(tweet.post_created_at)}}</span>
         </div>
         <p class="text">
             {{ tweet.post_message }}

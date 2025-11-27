@@ -7,7 +7,7 @@
                 {{ comment.user_first_name }}
                 {{ comment.user_last_name }}
             </span>
-            <span class="handle">@{{ comment.user_username }}</span> · <span class="time">1d</span>
+            <span class="handle">@{{ comment.user_username }}</span> · <span class="time">{{x.convert_time(comment.comment_created_at)}}</span>
         </div>
 
         <p class="text">

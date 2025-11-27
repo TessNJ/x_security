@@ -644,21 +644,21 @@ def api_get_tweets():
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk  ORDER BY post_created_at DESC LIMIT %s, 5"
         cursor.execute(q, ((next_page - 1)*5, ))
         tweets = cursor.fetchall()
-        ic(tweets)
+        ic(len(tweets))
         container = ""
 
         for tweet in tweets[:4]:
             html_tweet = render_template("_tweet.html", tweet = tweet)
             container = container + html_tweet
 
-        ic(container)
+        # ic(container)
         if len(tweets) == 5:
             new_hyperlink = render_template("___show_more.html", next_page=next_page+1)
         else :
             new_hyperlink = " "
 
         return f"""
-        <mixhtml mix-bottom="#tweets">
+        <mixhtml mix-bottom="#posts">
             {container}
         </mixhtml>
         <mixhtml mix-replace="#show_more">
@@ -692,10 +692,13 @@ def api_create_post():
         post = x.validate_post(request.form.get("post", ""))
 
         uploaded_file = request.files.get('post_image_attach', "")
-        _, ext = os.path.splitext(uploaded_file.filename)
-        post_image_path = uuid.uuid4().hex + ext
-        file_path = os.path.join(app.config['POST_UPLOAD_FOLDER'],  post_image_path)
-        uploaded_file.save(file_path)
+        if uploaded_file:
+            _, ext = os.path.splitext(uploaded_file.filename)
+            post_image_path = uuid.uuid4().hex + ext
+            file_path = os.path.join(app.config['POST_UPLOAD_FOLDER'],  post_image_path)
+            uploaded_file.save(file_path)
+        else:
+            post_image_path = ""
 
         post_pk = uuid.uuid4().hex
         # post_image_path = ""
@@ -722,7 +725,8 @@ def api_create_post():
             "post_total_comments":0,
             "post_liked": False,
             "post_pk": post_pk,
-            "post_image_path" : post_image_path
+            "post_image_path" : post_image_path,
+            "post_created_at" : post_created_at
         }
         html_post_container = render_template("___post_container.html")
         html_post = render_template("_tweet.html", tweet=tweet)
@@ -922,11 +926,32 @@ def api_delete_post():
             cursor.execute(q, (post_deleted_at, tweet["post_pk"] ))
             db.commit()
             if cursor.rowcount != 1: raise Exception("post couldnt update", 400)
+
+            user = session.get("user", "")
+            # lan = session["user"]["user_language"]
+            if not user: return "error" #maybe not needed
+            # db, cursor = x.db()
+            q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
+            cursor.execute(q)
+            tweets = cursor.fetchall()
+            # ic(tweets)
             
-            return f"""
-            <browser mix-update="#delete_{tweet['post_pk']}"></browser>
-            <browser mix-remove="#post_full_{tweet['post_pk']}"></browser>
-            """
+            for tweet in tweets:
+                q="SELECT EXISTS(SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s) AS liked"
+                cursor.execute(q, (user["user_pk"], tweet["post_pk"]))
+                tweet["liked"] = bool(cursor.fetchone()["liked"])
+            # ic(tweets)
+
+            html = render_template("_home_comp.html", tweets=tweets)
+            return f"""<mixhtml mix-update="main">{ html }</mixhtml>"""
+            
+            # return f"""
+            # <browser mix-update="#delete_{tweet['post_pk']}"></browser>
+            # <browser mix-remove="#post_full_{tweet['post_pk']}"></browser>
+            # """
+            # return f"""
+            # <browser mix-redirect="/home"></browser>
+            # """
                 
         except Exception as ex:
             ic(ex)
@@ -963,9 +988,11 @@ def show_comments():
         ic(comments)
 
         show_comments = render_template("_comments_container.html", comments=comments, tweet=post)
+        change_button = render_template("___hide_comments.html", tweet=post)
 
         return f"""
         <browser mix-update="#comments_{post_pk}">{show_comments}</browser>
+        <browser mix-update="#show_btn_{post_pk}">{change_button}</browser>
         """
     except Exception as ex:
         ic(ex)
@@ -980,6 +1007,33 @@ def show_comments():
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
+###########################
+@app.route("/hide-comments", methods=["GET"])
+@x.no_cache
+def hide_comments():
+    try:
+        post_pk = request.args.get("key", "")
+        tweet = {
+            "post_pk":post_pk
+        }
+
+        change_button = render_template("___show_comments.html", tweet=tweet)
+
+        return f"""
+        <browser mix-update="#comments_{post_pk}"></browser>
+        <browser mix-replace="#show_btn_{post_pk}">{change_button}</browser>
+        """
+    except Exception as ex:
+        ic(ex)
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
 
 #####################
 @app.route("/api-add-comments", methods=["POST"])
