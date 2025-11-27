@@ -15,10 +15,10 @@
 
             <div class="post-actions">
                 <span class="d-flex flex-row a-items-center">
-                    <button href="/show-comments?key={{tweet.post_pk}}" mix-get type="button">
-                        <i class="fa-regular fa-comment" class="action" style="pointer-events: none;"></i>
+                    <button href="/show-comments?key={{tweet.post_pk}}" mix-get type="button" class="action">
+                        <i class="fa-regular fa-comment" style="pointer-events: none;"></i>
                     </button>
-                    <span id="amount{{tweet.post_pk}}">
+                    <span id="comment_amount_{{tweet.post_pk}}">
                         {{tweet.post_total_comments}}
                     </span>
                 </span>
@@ -31,7 +31,7 @@
                     {% else %}
                     {% include "___button_like_tweet.html" %}
                     {% endif %}
-                    <span id="like_amount_{{tweet.post_pk}}" mix-get>
+                    <span id="like_amount_{{tweet.post_pk}}">
                         {{tweet.post_total_likes}}
                     </span>
                 </span>

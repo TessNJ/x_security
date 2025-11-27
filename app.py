@@ -1006,10 +1006,12 @@ def create_comments():
         q = "INSERT INTO comments VALUES (%s, %s, %s, %s, %s, %s, %s)"
         cursor.execute(q, (comment_pk, user["user_pk"], comment_message, post_pk, comment_created_at, comment_updated_at, comment_deleted_at))
         db.commit()
-        # q = "SELECT * FROM users JOIN comments ON user_pk = comment_user_fk WHERE comment_deleted_at = 0 AND post_fk = %s ORDER BY comment_created_at DESC LIMIT 0, 5"
-        # cursor.execute(q, (post_pk,))
-        # comments = cursor.fetchall()
-        # ic(comments)
+
+        ### update total comments ###
+        q="UPDATE posts SET post_total_comments=post_total_comments+1 WHERE post_pk = %s"        
+        cursor.execute(q, (post_pk,))
+        db.commit()
+
         comment = {
             "user_first_name": user["user_first_name"],
             "user_last_name": user["user_last_name"],
@@ -1025,10 +1027,13 @@ def create_comments():
         }
 
         show_comments = render_template("___comment.html", comment=comment, tweet=post)
+        comment_container = render_template("___create_comment.html", tweet=post)
 
         return f"""
         <browser mix-top="#view_comments_{post_pk}">{show_comments}</browser>
         <browser mix-remove="#no_comments_{post_pk}"></browser>
+        <browser mix-replace="#comment_container_{post_pk}">{comment_container}</browser>
+        <browser mix-update="#comment_amount_{post_pk}">{post["post_total_comments"]+1}</browser>
         """
     except Exception as ex:
         ic(ex)

@@ -1,4 +1,4 @@
-<form id="comment_container" action="/api-add-comments?key={{tweet.post_pk}}" mix-post class="d-flex flex-col w-full ml-2">
+<form id="comment_container_{{tweet.post_pk}}" action="/api-add-comments?key={{tweet.post_pk}}" mix-post class="d-flex flex-col w-full ml-2">
     <textarea name="comment" placeholder="Add comment" 
     class="w-full outline-1 outline-s-solid outline-c-gray:+50 pa-2"></textarea>
     <button mix-default="comment" mix-await="commenting ..." 
