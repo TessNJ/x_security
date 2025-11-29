@@ -1581,7 +1581,7 @@ def admin_user():
         if "db" in locals(): db.close()
 
 ########
-@app.route("/control_panel/posts", methods=["GET", "POST"])
+@app.route("/control_panel/posts", methods=["GET"])
 @x.no_cache
 def admin_posts():
     if request.method == "GET":
@@ -1611,24 +1611,6 @@ def admin_posts():
         finally:
             if "cursor" in locals(): cursor.close()
             if "db" in locals(): db.close()
-    # if request.method == "POST":    
-    #     try:
-    #         db, cursor = x.db()
-    #         q="CALL get_posts(%s)"
-    #         # q="SELECT * FROM posts LIMIT 10 OFFSET %s"
-    #         cursor.execute(q,(0,))
-    #         all_posts = cursor.fetchall()
-
-    #         # ic(all_posts)
-
-    #         return render_template("control_panel_posts.html", tweets=all_posts)
-    #     except Exception as ex:
-    #         ic(ex)
-    #         pass
-    #     finally:
-    #         if "cursor" in locals(): cursor.close()
-    #         if "db" in locals(): db.close() 
-    # 
  
 ##############################
 @app.get("/api-get-tweets-admin")
