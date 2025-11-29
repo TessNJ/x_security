@@ -1629,7 +1629,7 @@ def admin_posts():
     #         if "cursor" in locals(): cursor.close()
     #         if "db" in locals(): db.close() 
     # 
-#########################       
+ 
 ##############################
 @app.get("/api-get-tweets-admin")
 def api_get_tweets_admin():
@@ -1678,7 +1678,77 @@ def api_get_tweets_admin():
         if "db" in locals(): db.close()
 
 
+#########################      
+@app.get("/api-block-post")
+def block_post():
+    try:
+        pass
+    except Exception as ex:
+        ic(ex)
 
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+#########################      
+@app.get("/api-unblock-post")
+def unblock_post():
+    try:
+        pass
+    except Exception as ex:
+        ic(ex)
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+#########################      
+@app.get("/api-block-user")
+def block_user():
+    try:
+        pass
+    except Exception as ex:
+        ic(ex)
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+#########################      
+@app.get("/api-unblock-user")
+def unblock_user():
+    try:
+        pass
+    except Exception as ex:
+        ic(ex)
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
 
 
 
