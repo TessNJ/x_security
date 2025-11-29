@@ -364,6 +364,7 @@ function mix_convert(){
     document.querySelectorAll(`[mix-url], [mix-get], [mix-post], [mix-patch], [mix-put], 
                                 [mix-delete], [mix-ttl], [mix-fade-out], [mix-fade-in]`).forEach( el => {
         try{
+            let set_event = true;
             let el_event = "onclick"
             if( el.tagName === "FORM" ){ el_event = "onsubmit" }
             if( el.hasAttribute("mix-focus") ){ el_event = "onfocus" }
@@ -374,6 +375,7 @@ function mix_convert(){
             if( el.hasAttribute("mix-url") && ! el.hasAttribute("mix-ttl") ){ el.setAttribute("mix-ttl", "0") }
         
             if(el.hasAttribute("mix-fade-out")){ 
+                set_event = false;
                 let ttl = el.getAttribute("mix-fade-out")
                 if( ! /^[0-9]\d*$/.test(ttl) ){
                     ttl = 2000
@@ -384,6 +386,7 @@ function mix_convert(){
             }
 
             if(el.hasAttribute("mix-fade-in")){ 
+                set_event = false;
                 let ttl = el.getAttribute("mix-fade-in")
                 if( ! /^[0-9]\d*$/.test(ttl) ){
                     ttl = 2000
@@ -397,7 +400,7 @@ function mix_convert(){
 
 
             if(el.hasAttribute("mix-ttl")){
-
+                set_event = false;
                 const ttl = el.getAttribute("mix-ttl") || 0
                 if( ! /^[0-9]\d*$/.test(ttl) ){
                     console.log("mix-ttl must be an integer starting from 1")
@@ -412,8 +415,10 @@ function mix_convert(){
                     }
                     return
                 }                    
+            }
+            if (set_event) {
+                el.setAttribute(el_event, "mixhtml(); return false")                              
             }           
-            el.setAttribute(el_event, "mixhtml(); return false")                              
         }catch(error){ if(DISPLAY_ERRORS){ console.log(error) }}
     })
 }

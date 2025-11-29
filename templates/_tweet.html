@@ -1,4 +1,4 @@
-<article class="post" id="post_full_{{tweet.post_pk}}">
+<article class="post" id="post_full_{{tweet.post_pk}}" mix-fade-in="5000">
     <div>
         <img src="{{ url_for('static', filename='uploads/'~(tweet.user_avatar_path if tweet.user_avatar_path else 'default.jpg')) }}"
             alt="Profile Picture" class="w-8 h-8 rounded-full">
@@ -43,17 +43,17 @@
                 {% if tweet.user_username == session["user"]["user_username"]%}
                 <span>
                     <button href="/api-update-post?key={{tweet.post_pk}}" mix-get type="button">
-                        edit
+                        <i class="fa-regular fa-edit" style="pointer-events: none;"></i> 
                     </button>
                 </span>
                 {%endif%}
                 {% if tweet.user_username == session["user"]["user_username"]%}
                 <span>
                     <button href="/api-delete-post?key={{tweet.post_pk}}" mix-get type="button">
-                        delete post
+                        <i class="fa-solid fa-trash" style="pointer-events: none;"></i> 
                     </button>
                 </span>
-                <div id="delete_{{tweet.post_pk}}"></div>
+                <div id="delete_{{tweet.post_pk}}" class="pop_up_confirm"></div>
                 {%endif%}
             </div>
         </div>

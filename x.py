@@ -30,6 +30,8 @@ app.config['DB_HOST'] = os.getenv('DB_HOST')
 app.config['DB_USER'] = os.getenv('DB_USER')
 app.config['DB_PASSWORD'] = os.getenv('DB_PASSWORD')
 app.config['DB_DBNAME'] = os.getenv('DB_DBNAME')
+app.config['ADMIN_EMAIL'] = os.getenv('ADMIN_EMAIL')
+app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
 
 allowed_languages = ["english", "danish", "spanish"]
 # google_spread_sheet_key = "17zrH7Akox0wKq4PeYWDqA1vyCq7zLBMvrT78YYhEnbQ"
@@ -196,6 +198,22 @@ def redirect_index_mixhtlm():
 ##############################
 def redirect_index_flask():
     return redirect(url_for("login"))
+
+def validate_admin_logged():
+    logged = session.get("admin", "")
+    if not logged: return False
+    if logged["email"] != app.config['ADMIN_EMAIL'] : False
+    if logged["password"] != app.config['ADMIN_PASSWORD'] : False
+    return True
+    
+    # if not logged: return redirect(url_for("view_index"))
+    # if logged["email"] != app.config['ADMIN_EMAIL'] : 
+    #     session.clear()
+    #     return redirect(url_for("view_index"))
+    # if logged["password"] != app.config['ADMIN_PASSWORD'] : 
+    #     session.clear()
+    #     return redirect(url_for("view_index"))
+    # return "ok"
 
 #############################
 MINUTE_SECOND = 60

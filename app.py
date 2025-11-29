@@ -163,15 +163,16 @@ def signup(lan = "english"):
             user_verified_at = 0
             user_updated_at = 0
             user_deleted_at = 0
+            user_is_blocked = 0
 
             user_hashed_password = generate_password_hash(user_password)
 
 
             # Connect to the database
-            q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             db, cursor = x.db()
             cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username,
-            user_first_name, user_last_name, user_avatar_path, user_password_reset, user_verification_key, user_verified_at, user_updated_at, user_deleted_at))
+            user_first_name, user_last_name, user_avatar_path, user_password_reset, user_verification_key, user_verified_at, user_updated_at, user_deleted_at, user_is_blocked))
             db.commit()
 
             # send verification email
@@ -615,6 +616,10 @@ def delete_user() :
         email_user_deleted = render_template("_email_user_deleted.html", lan=x.default_language, x=x)
         x.send_email(user_email, "Your account has been deleted", email_user_deleted)
 
+        # TODO: Delete post from user
+        # TODO: Delete follows from user
+        # TODO: Delete likes from user
+
         session.clear()
         return redirect(url_for("login"))
 
@@ -641,7 +646,7 @@ def api_get_tweets():
         # ic(next_page)
         db, cursor = x.db()
         # q = "SELECT * FROM posts LIMIT %s, 3"
-        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk  ORDER BY post_created_at DESC LIMIT %s, 5"
+        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0  ORDER BY post_created_at DESC LIMIT %s, 5"
         cursor.execute(q, ((next_page - 1)*5, ))
         tweets = cursor.fetchall()
         ic(len(tweets))
@@ -705,13 +710,13 @@ def api_create_post():
         post_created_at = int(time.time())
         post_updated_at = 0
         post_deleted_at = 0
-        post_is_banned = 0
+        post_is_blocked = 0
         post_total_likes = 0
         post_total_comments = 0
 
         db, cursor = x.db()
         q = "INSERT INTO posts VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(q, (post_pk, user_pk, post, post_image_path, post_total_likes, post_total_comments, post_created_at, post_updated_at, post_deleted_at, post_is_banned))
+        cursor.execute(q, (post_pk, user_pk, post, post_image_path, post_total_likes, post_total_comments, post_created_at, post_updated_at, post_deleted_at, post_is_blocked))
         db.commit()
 
         toast_ok = render_template("___toast_ok.html", message="The world is reading your post !")
@@ -877,6 +882,24 @@ def api_cancel_post():
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
+#################3
+@app.route("/api-cancel-confirm", methods=["GET"])
+@x.no_cache
+def api_cancel_confirm():
+    try:
+        post_pk = request.args.get("key", "")
+
+        return f"""
+            <browser mix-update="#delete_{post_pk}"></browser>
+        """
+    except Exception as ex:
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 
 @app.route("/api-delete-post", methods=["GET","POST"])
@@ -1301,8 +1324,8 @@ def create_like():
         
 
         ### update total likes ###
-        q="UPDATE posts SET post_total_likes=post_total_likes+1 WHERE post_pk = %s"        
-        cursor.execute(q, (post["post_pk"],))
+        # q="UPDATE posts SET post_total_likes=post_total_likes+1 WHERE post_pk = %s"        
+        # cursor.execute(q, (post["post_pk"],))
         db.commit()
 
         post["liked"] = bool(True)
@@ -1370,8 +1393,8 @@ def remove_like():
 
         ### update total likes ###
         post_total_likes = post["post_total_likes"]-1
-        q="UPDATE posts SET post_total_likes=%s WHERE post_pk = %s"        
-        cursor.execute(q, (post_total_likes, post_liked_pk,))
+        # q="UPDATE posts SET post_total_likes=%s WHERE post_pk = %s"        
+        # cursor.execute(q, (post_total_likes, post_liked_pk,))
         db.commit()
         
         ### Send data ###
@@ -1440,8 +1463,10 @@ def admin(lan="english") :
 def get_data_from_sheet():
     try:
         # Check if the admin is running this end-point, else show error
-        # admin = session.get("admin", "")
-        # if not admin: return redirect(url_for("view_index"))
+        if not x.validate_admin_logged() :
+            session.clear()
+            return redirect(url_for("view_index"))
+
 
         # flaskwebmail
         # Create a google sheet
@@ -1496,18 +1521,19 @@ def get_data_from_sheet():
 @x.no_cache
 def control_panel():
     try:
-        admin = session.get("admin", "")
-        if not admin: return redirect(url_for("view_index"))
-
-        correct_email = "admin@x.com"
-        correct_password  = "password"
-
-        if admin["email"] != correct_email : 
+        if not x.validate_admin_logged() :
             session.clear()
             return redirect(url_for("view_index"))
-        if admin["password"] != correct_password : 
-            session.clear()
-            return redirect(url_for("view_index"))
+
+        # correct_email = "admin@x.com"
+        # correct_password  = "password"
+
+        # if admin["email"] != correct_email : 
+        #     session.clear()
+        #     return redirect(url_for("view_index"))
+        # if admin["password"] != correct_password : 
+        #     session.clear()
+        #     return redirect(url_for("view_index"))
 
         return render_template("control_panel.html")
     except Exception as ex:
@@ -1532,6 +1558,11 @@ def temp_route():
 @x.no_cache
 def admin_user():
     try:
+        if not x.validate_admin_logged() :
+            session.clear()
+            return redirect(url_for("view_index"))
+
+
         db, cursor = x.db()
         # q="CALL get_all_users()"
         q="CALL get_users(%s)"
@@ -1541,7 +1572,7 @@ def admin_user():
 
         ic(all_users)
 
-        return "users"
+        return render_template("control_panel_users.html", users=all_users)
     except Exception as ex:
         ic(ex)
         pass
@@ -1555,39 +1586,96 @@ def admin_user():
 def admin_posts():
     if request.method == "GET":
         try:
+            if not x.validate_admin_logged() :
+                session.clear()
+                return redirect(url_for("view_index"))
+            
             db, cursor = x.db()
             q="CALL get_posts(%s)"
             # q="SELECT * FROM posts LIMIT 10 OFFSET %s"
             cursor.execute(q,(0,))
             all_posts = cursor.fetchall()
 
-            # ic(all_posts)
+            # ic(len(all_posts))
 
-            return render_template("control_panel_posts.html", tweets=all_posts)
+            next_page = 1
+            if len(all_posts) : all_posts.pop()
+
+
+            ic(all_posts)
+
+            return render_template("control_panel_posts.html", tweets=all_posts, next_page=next_page)
         except Exception as ex:
             ic(ex)
             pass
         finally:
             if "cursor" in locals(): cursor.close()
             if "db" in locals(): db.close()
-    if request.method == "POST":    
-        try:
-            db, cursor = x.db()
-            q="CALL get_posts(%s)"
-            # q="SELECT * FROM posts LIMIT 10 OFFSET %s"
-            cursor.execute(q,(0,))
-            all_posts = cursor.fetchall()
+    # if request.method == "POST":    
+    #     try:
+    #         db, cursor = x.db()
+    #         q="CALL get_posts(%s)"
+    #         # q="SELECT * FROM posts LIMIT 10 OFFSET %s"
+    #         cursor.execute(q,(0,))
+    #         all_posts = cursor.fetchall()
 
-            # ic(all_posts)
+    #         # ic(all_posts)
 
-            return render_template("control_panel_posts.html", tweets=all_posts)
-        except Exception as ex:
-            ic(ex)
-            pass
-        finally:
-            if "cursor" in locals(): cursor.close()
-            if "db" in locals(): db.close()        
+    #         return render_template("control_panel_posts.html", tweets=all_posts)
+    #     except Exception as ex:
+    #         ic(ex)
+    #         pass
+    #     finally:
+    #         if "cursor" in locals(): cursor.close()
+    #         if "db" in locals(): db.close() 
+    # 
+#########################       
+##############################
+@app.get("/api-get-tweets-admin")
+def api_get_tweets_admin():
+    try:
+        next_page = int(request.args.get("page", ""))
+        ic(next_page)
+        db, cursor = x.db()
+        
+        q="CALL get_posts(%s)"
+        cursor.execute(q,(10*next_page,))
+        # q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0  ORDER BY post_created_at DESC LIMIT %s, 5"
+        # cursor.execute(q, ((next_page - 1)*5, ))
+        tweets = cursor.fetchall()
+        ic(len(tweets))
+        container = ""
 
+        for tweet in tweets[:10]:
+            html_tweet = render_template("_tweet_admin.html", tweet = tweet)
+            container = container + html_tweet
+
+        # ic(container)
+        if len(tweets) == 11:
+            new_hyperlink = render_template("___show_more_posts_admin.html", next_page=next_page+1)
+        else :
+            new_hyperlink = " "
+
+        return f"""
+        <mixhtml mix-bottom="#posts">
+            {container}
+        </mixhtml>
+        <mixhtml mix-replace="#show_more">
+            {new_hyperlink}
+        </mixhtml>
+        """
+    except Exception as ex:
+        ic(ex)
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
 
 
 

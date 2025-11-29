@@ -21,7 +21,7 @@
     
     
     <header class="px-4">
-        <h1>Post manager</h1>
+        <h1>X | Control Panel</h1>
 
         <nav>
             <a href="/control_panel/users">User panel</a>
@@ -32,10 +32,14 @@
         <a href="{{ url_for('logout') }}">{{ x.lans('logout').capitalize() }}</a>
     </header>
     <main class="px-4">
+        <h2>Post manager</h2>
 
-        {% for tweet in tweets: %}
-        {% include "_tweet_admin.html" %}
-        {% endfor %}
+        <div id="posts">
+            {% for tweet in tweets: %}
+            {% include "_tweet_admin.html" %}
+            {% endfor %}
+        </div>
+        {% include "___show_more_posts_admin.html" %}
     </main>
         
     
