@@ -1439,23 +1439,29 @@ def admin(lan="english") :
 
     if request.method == "POST":
         try : 
-            correct_email = app.config['ADMIN_EMAIL']
-            correct_password  = app.config['ADMIN_PASSWORD']
+            # correct_email = app.config['ADMIN_EMAIL']
+            # correct_password  = app.config['ADMIN_PASSWORD']
             email = request.form.get("user_email", "")
             password = request.form.get("user_password", "")
 
-            if correct_email != email : return "error"
-
-            if correct_password != password : return "incorrect"
+            if  email != app.config['ADMIN_EMAIL'] : raise Exception(x.lans('Incorrect email'), 400)
+            if  password != app.config['ADMIN_PASSWORD'] : raise Exception(x.lans('Incorrect credentials'), 400)
 
             admin = {}
-            admin["email"] = correct_email
-            admin["password"] = correct_password
+            admin["email"] = app.config['ADMIN_EMAIL']
+            admin["password"] = app.config['ADMIN_PASSWORD']
             session["admin"] = admin
             return f"""<browser mix-redirect="/control_panel"></browser>"""
-        except Exception as ex :
+        except Exception as ex:
             ic(ex)
-            return "error"
+
+            if ex.args[1] == 400:
+                toast_error = render_template("___toast_error.html", message=ex.args[0])
+                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
         
 ##############################
 @app.get("/8152a9ee-1f86-4a7a-9cd7-2f45b4087694ecxx523f7c-b27f-49b7-9fc1-24baaba82a5e")
@@ -1512,9 +1518,13 @@ def get_data_from_sheet():
         """
     except Exception as ex:
         ic(ex)
-        return str(ex)
-    finally:
-        pass
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 
 @app.route("/control_panel", methods=["GET"])
@@ -1525,23 +1535,16 @@ def control_panel():
             session.clear()
             return redirect(url_for("view_index"))
 
-        # correct_email = "admin@x.com"
-        # correct_password  = "password"
-
-        # if admin["email"] != correct_email : 
-        #     session.clear()
-        #     return redirect(url_for("view_index"))
-        # if admin["password"] != correct_password : 
-        #     session.clear()
-        #     return redirect(url_for("view_index"))
-
         return render_template("control_panel.html")
     except Exception as ex:
         ic(ex)
-        return "error"
-    finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 @app.get("/temp")
 @x.no_cache
@@ -1552,35 +1555,7 @@ def temp_route():
     session["admin"] = admin
     return "ok"
             
-
-########
-@app.route("/control_panel/users", methods=["GET"])
-@x.no_cache
-def admin_user():
-    try:
-        if not x.validate_admin_logged() :
-            session.clear()
-            return redirect(url_for("view_index"))
-
-
-        db, cursor = x.db()
-        # q="CALL get_all_users()"
-        q="CALL get_users(%s)"
-        # q="SELECT * FROM users LIMIT 10 offset %s"
-        cursor.execute(q,(0,))
-        all_users = cursor.fetchall()
-
-        ic(all_users)
-
-        return render_template("control_panel_users.html", users=all_users)
-    except Exception as ex:
-        ic(ex)
-        pass
-    finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
-
-########
+########################
 @app.route("/control_panel/posts", methods=["GET"])
 @x.no_cache
 def admin_posts():
@@ -1598,16 +1573,25 @@ def admin_posts():
 
             # ic(len(all_posts))
 
-            next_page = 1
-            if len(all_posts) : all_posts.pop()
+            if len(all_posts)== 11 :
+                next_page = 1
+                all_posts.pop()
+            else :
+                next_page = 0
 
+            # ic(next_page)
 
-            ic(all_posts)
 
             return render_template("control_panel_posts.html", tweets=all_posts, next_page=next_page)
         except Exception as ex:
             ic(ex)
-            pass
+
+            if ex.args[1] == 400:
+                toast_error = render_template("___toast_error.html", message=ex.args[0])
+                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
             if "cursor" in locals(): cursor.close()
             if "db" in locals(): db.close()
@@ -1616,6 +1600,11 @@ def admin_posts():
 @app.get("/api-get-tweets-admin")
 def api_get_tweets_admin():
     try:
+        if not x.validate_admin_logged() :
+            session.clear()
+            return redirect(url_for("view_index"))
+        
+
         next_page = int(request.args.get("page", ""))
         ic(next_page)
         db, cursor = x.db()
@@ -1659,12 +1648,117 @@ def api_get_tweets_admin():
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
+#############
+@app.route("/confirm_block_post", methods=["POST"])
+@x.no_cache
+def confirm_block_post():
+    try: 
+        post_pk = request.args.get("key", "")
+
+        username = request.args.get("username", "")
+
+        tweet = {}
+        tweet["post_pk"] = post_pk
+
+        tweet["user_username"] = username
+        confirm_block_post = render_template("___confirm_block_post.html", tweet=tweet)
+
+        return f"""
+        <browser mix-update="#block_confirm_{post_pk}">{confirm_block_post}</browser>
+        """
+    except Exception as ex:
+        ic(ex)
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    
+#############
+@app.route("/confirm_unblock_post", methods=["POST"])
+@x.no_cache
+def confirm_unblock_post():
+    try: 
+        post_pk = request.args.get("key", "")
+
+        username = request.args.get("username", "")
+
+        tweet = {}
+        tweet["post_pk"] = post_pk
+
+        tweet["user_username"] = username
+        confirm_unblock_post = render_template("___confirm_unblock_post.html", tweet=tweet)
+
+        return f"""
+        <browser mix-update="#block_confirm_{post_pk}">{confirm_unblock_post}</browser>
+        """
+    except Exception as ex:
+        ic(ex)
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
+#############
+@app.route("/confirm_post_cancel", methods=["GET"])
+@x.no_cache
+def confirm_post_cancel():
+    try: 
+        post_pk = request.args.get("key", "")
+        return f"""
+        <browser mix-update="#block_confirm_{post_pk}"></browser>
+        """
+    except Exception as ex:
+        ic(ex)
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
 
 #########################      
-@app.get("/api-block-post")
+@app.post("/api-block-post")
 def block_post():
     try:
-        pass
+        if not x.validate_admin_logged() :
+            session.clear()
+            return redirect(url_for("view_index"))
+        
+        post_pk = request.args.get("key", "")
+        
+        db, cursor = x.db()
+        q="SELECT * FROM posts WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
+        tweet = cursor.fetchone()
+
+        if tweet["post_deleted_at"] != 0 : raise Exception("post is deleted", 400)
+        if tweet["post_is_blocked"] != 0 : raise Exception("post is already block", 400)
+
+        q="UPDATE posts SET post_is_blocked = 1 WHERE post_pk = %s"
+        cursor.execute(q, (post_pk, ))
+        db.commit()
+        if cursor.rowcount != 1: raise Exception("post couldnt be blocked", 400)
+        
+        username = request.args.get("username", "")
+
+        tweet = {}
+        tweet["post_pk"] = post_pk
+
+        tweet["user_username"] = username
+
+        new_input = render_template("___button_unblock_post.html", tweet=tweet)
+
+        return f"""
+            <browser mix-replace="#post_block_{post_pk}">
+                {new_input}
+            </browser>
+            <browser mix-update="#block_confirm_{post_pk}"></browser>
+        """
     except Exception as ex:
         ic(ex)
 
@@ -1679,10 +1773,43 @@ def block_post():
         if "db" in locals(): db.close()
 
 #########################      
-@app.get("/api-unblock-post")
+@app.post("/api-unblock-post")
 def unblock_post():
     try:
-        pass
+        if not x.validate_admin_logged() :
+            session.clear()
+            return redirect(url_for("view_index"))
+        
+        post_pk = request.args.get("key", "")
+        
+        db, cursor = x.db()
+        q="SELECT * FROM posts WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
+        tweet = cursor.fetchone()
+
+        if tweet["post_deleted_at"] != 0 : raise Exception("post is deleted", 400)
+        if tweet["post_is_blocked"] == 0 : raise Exception("post isnt block", 400)
+
+        q="UPDATE posts SET post_is_blocked = 0 WHERE post_pk = %s"
+        cursor.execute(q, (post_pk, ))
+        db.commit()
+        if cursor.rowcount != 1: raise Exception("post couldnt be unblocked", 400)
+
+        username = request.args.get("username", "")
+
+        tweet = {}
+        tweet["post_pk"] = post_pk
+
+        tweet["user_username"] = username
+
+        new_input = render_template("___button_block_post.html", tweet=tweet)
+
+        return f"""
+            <browser mix-replace="#post_block_{post_pk}">
+                {new_input}
+            </browser>
+            <browser mix-update="#block_confirm_{post_pk}"></browser>
+        """
     except Exception as ex:
         ic(ex)
 
@@ -1696,11 +1823,206 @@ def unblock_post():
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
 
+
+########################
+@app.route("/control_panel/users", methods=["GET"])
+@x.no_cache
+def admin_user():
+    try:
+        if not x.validate_admin_logged() :
+            session.clear()
+            return redirect(url_for("view_index"))
+
+
+        db, cursor = x.db()
+        # q="CALL get_all_users()"
+        q="CALL get_users(%s)"
+        # q="SELECT * FROM users LIMIT 10 offset %s"
+        cursor.execute(q,(0,))
+        all_users = cursor.fetchall()
+
+        ic(all_users)
+        if len(all_users)== 11 :
+            next_page = 1
+            all_users.pop()
+        else :
+            next_page = 0
+        ic(next_page)
+
+        return render_template("control_panel_users.html", users=all_users, next_page=next_page)
+    except Exception as ex:
+        ic(ex)
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+##############################
+@app.get("/api-get-users-admin")
+def api_get_users_admin():
+    try:
+        if not x.validate_admin_logged() :
+            session.clear()
+            return redirect(url_for("view_index"))
+        
+
+        next_page = int(request.args.get("page", ""))
+        ic(next_page)
+        db, cursor = x.db()
+        
+        q="CALL get_users(%s)"
+        cursor.execute(q,(10*next_page,))
+        # q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0  ORDER BY post_created_at DESC LIMIT %s, 5"
+        # cursor.execute(q, ((next_page - 1)*5, ))
+        users = cursor.fetchall()
+        ic(users)
+        container = ""
+
+        for user in users[:10]:
+            html_user = render_template("_user_admin.html", user=user)
+            container = container + html_user
+
+        # ic(container)
+        if len(users) == 11:
+            new_hyperlink = render_template("___show_more_users_admin.html", next_page=next_page+1)
+        else :
+            new_hyperlink = " "
+
+        return f"""
+        <mixhtml mix-bottom="#users">
+            {container}
+        </mixhtml>
+        <mixhtml mix-replace="#show_more">
+            {new_hyperlink}
+        </mixhtml>
+        """
+    except Exception as ex:
+        ic(ex)
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+
+#############
+@app.route("/confirm_block_user", methods=["POST"])
+@x.no_cache
+def confirm_block_user():
+    try: 
+        user_pk = request.args.get("key", "")
+        username = request.args.get("username", "")
+
+        user = {}
+        user["user_pk"] = user_pk
+        user["user_username"] = username
+        confirm_block_user = render_template("___confirm_block_user.html", user=user)
+
+        return f"""
+        <browser mix-update="#block_confirm_{user_pk}">{confirm_block_user}</browser>
+        """
+    except Exception as ex:
+        ic(ex)
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    
+#############
+@app.route("/confirm_unblock_user", methods=["POST"])
+@x.no_cache
+def confirm_unblock_user():
+    try: 
+        user_pk = request.args.get("key", "")
+        username = request.args.get("username", "")
+
+        user = {}
+        user["user_pk"] = user_pk
+        user["user_username"] = username
+
+        confirm_unblock_user = render_template("___confirm_unblock_user.html", user=user)
+
+        return f"""
+        <browser mix-update="#block_confirm_{user_pk}">{confirm_unblock_user}</browser>
+        """
+    except Exception as ex:
+        ic(ex)
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
+#############
+@app.route("/confirm_user_cancel", methods=["GET"])
+@x.no_cache
+def confirm_user_cancel():
+    try: 
+        user_pk = request.args.get("key", "")
+        return f"""
+        <browser mix-update="#block_confirm_{user_pk}"></browser>
+        """
+    except Exception as ex:
+        ic(ex)
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
+
 #########################      
-@app.get("/api-block-user")
+@app.post("/api-block-user")
 def block_user():
     try:
-        pass
+        if not x.validate_admin_logged() :
+            session.clear()
+            return redirect(url_for("view_index"))
+        
+        user_pk = request.args.get("key", "")
+
+        db, cursor = x.db()
+        q="SELECT * FROM users WHERE user_pk = %s"
+        cursor.execute(q, (user_pk,))
+        user = cursor.fetchone()
+
+        if user["user_deleted_at"] != 0 : raise Exception("user is deleted", 400)
+        if user["user_is_blocked"] != 0 : raise Exception("user is already block", 400)
+
+        q="UPDATE users SET user_is_blocked = 1 WHERE user_pk = %s"
+        cursor.execute(q, (user_pk, ))
+        db.commit()
+        if cursor.rowcount != 1: raise Exception("user couldnt be blocked", 400)
+
+        username = request.args.get("username", "")
+
+        user = {}
+        user["user_pk"] = user_pk
+        user["user_username"] = username
+
+        new_input = render_template("___button_unblock_user.html", user=user)
+
+        return f"""
+            <browser mix-replace="#user_block_{user_pk}">
+                {new_input}
+            </browser>
+            <browser mix-update="#block_confirm_{user_pk}"></browser>
+        """
     except Exception as ex:
         ic(ex)
 
@@ -1715,10 +2037,42 @@ def block_user():
         if "db" in locals(): db.close()
 
 #########################      
-@app.get("/api-unblock-user")
+@app.post("/api-unblock-user")
 def unblock_user():
     try:
-        pass
+        if not x.validate_admin_logged() :
+            session.clear()
+            return redirect(url_for("view_index"))
+        
+        user_pk = request.args.get("key", "")
+
+        db, cursor = x.db()
+        q="SELECT * FROM users WHERE user_pk = %s"
+        cursor.execute(q, (user_pk,))
+        user = cursor.fetchone()
+
+        if user["user_deleted_at"] != 0 : raise Exception("user is deleted", 400)
+        if user["user_is_blocked"] == 0 : raise Exception("user isnt blocked", 400)
+
+        q="UPDATE users SET user_is_blocked = 0 WHERE user_pk = %s"
+        cursor.execute(q, (user_pk, ))
+        db.commit()
+        if cursor.rowcount != 1: raise Exception("user couldnt be unblocked", 400)
+
+        username = request.args.get("username", "")
+
+        user = {}
+        user["user_pk"] = user_pk
+        user["user_username"] = username
+
+        new_input = render_template("___button_block_user.html", user=user)
+
+        return f"""
+            <browser mix-replace="#user_block_{user_pk}">
+                {new_input}
+            </browser>
+            <browser mix-update="#block_confirm_{user_pk}"></browser>
+        """
     except Exception as ex:
         ic(ex)
 
@@ -1731,16 +2085,6 @@ def unblock_user():
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
-
-
-
-
-
-
-
-
-
-
 
 
 

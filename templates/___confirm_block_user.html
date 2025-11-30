@@ -1,0 +1,8 @@
+<div class="block_user" >
+    <p>Are you sure you want to block @{{user.user_username}}?</p>
+    <p>They will be notified via email</p>
+    <div>
+        <a mix-get href="/confirm_user_cancel?key={{user.user_pk}}">Cancel</a>
+        <a mix-post href="/api-block-user?key={{user.user_pk}}&username={{user.user_username}}">Block</a>
+    </div>
+</div>

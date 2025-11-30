@@ -1,0 +1,9 @@
+<div class="block_post" >
+    <p>Are you sure you want to block this post by @{{tweet.user_username}}?</p>
+    <p>Post id: {{tweet.post_pk}}</p>
+    <p>They will be notified via email</p>
+    <div>
+        <a mix-get href="/confirm_post_cancel?key={{tweet.post_pk}}">Cancel</a>
+        <a mix-post href="/api-block-post?key={{tweet.post_pk}}&username={{tweet.user_username}}">Block</a>
+    </div>
+</div>

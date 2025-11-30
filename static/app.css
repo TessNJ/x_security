@@ -210,11 +210,27 @@ main {
   grid-column: 2 / 3;
   border-right: 1px solid rgb(230, 230, 230);
   border-left: 1px solid rgb(230, 230, 230);
-      .admin-post {
+    .admin-post, .admin-user {
       display: grid;
       grid-template-columns: 1fr 10rem;
       margin: 0 20rem;
     }
+  .user-display {
+    padding: 1rem;
+    border-bottom: 1px solid rgb(230, 230, 230);
+  }
+  .admin-control {
+    align-self: center;
+  }
+  .admin_show_more {
+    margin: 2rem 20rem;
+    > a {
+      padding: 0.5rem 1rem;
+      border-radius: 30px;
+      background-color: black;
+      color: white;
+    }
+  }
 
   .post {
     border-bottom: 1px solid rgb(230, 230, 230);
@@ -693,11 +709,11 @@ aside {
   padding: 1rem 0;
   z-index: 10;
 
-  .delete_user, .delete_post {
+  .delete_user, .delete_post, .block_post, .block_user {
     margin: auto;
     padding: 1rem 2rem;
     color: white;
-    background-color: rgba(190, 0, 0, 0.9);
+    background-color: rgba(190, 0, 0);
     border: 1px solid black;
     border-radius: 0.5rem;
 

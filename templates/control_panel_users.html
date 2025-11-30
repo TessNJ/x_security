@@ -34,8 +34,15 @@
     <main class="px-4">
         <h2>User manager</h2>
 
-        <div>
-
+        <div id="users">
+            {% for user in users: %}
+            {% include "_user_admin.html" %}
+            {% endfor %}
+        </div>
+        <div class="admin_show_more">
+            {% if next_page != 0%}
+            {% include "___show_more_users_admin.html" %}
+            {% endif%}
         </div>
     </main>
         

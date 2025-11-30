@@ -88,7 +88,7 @@ def validate_user_email():
 USER_USERNAME_MIN = 2
 USER_USERNAME_MAX = 20
 REGEX_USER_USERNAME = f"^.{{{USER_USERNAME_MIN},{USER_USERNAME_MAX}}}$"
-def validate_user_username(lan="english"):
+def validate_user_username():
     user_username = request.form.get("user_username", "").strip()
     error = f"{lans('username')}: {USER_USERNAME_MIN} {lans('to')} {USER_USERNAME_MAX} {lans('characters')}"
     if len(user_username) < USER_USERNAME_MIN: raise Exception(error, 400)
@@ -99,7 +99,7 @@ def validate_user_username(lan="english"):
 USER_FIRST_NAME_MIN = 2
 USER_FIRST_NAME_MAX = 20
 REGEX_USER_FIRST_NAME = f"^.{{{USER_FIRST_NAME_MIN},{USER_FIRST_NAME_MAX}}}$"
-def validate_user_first_name(lan="english"):
+def validate_user_first_name():
     user_first_name = request.form.get("user_first_name", "").strip()
     error = f"{lans('first_name')}: {USER_FIRST_NAME_MIN} {lans('to')} {USER_FIRST_NAME_MAX} {lans('characters')}"
     if not re.match(REGEX_USER_FIRST_NAME, user_first_name): raise Exception(error, 400)
@@ -110,20 +110,20 @@ def validate_user_first_name(lan="english"):
 USER_PASSWORD_MIN = 6
 USER_PASSWORD_MAX = 50
 REGEX_USER_PASSWORD = f"^.{{{USER_PASSWORD_MIN},{USER_PASSWORD_MAX}}}$"
-def validate_user_password(lan = "english"):
+def validate_user_password():
     user_password = request.form.get("user_password", "").strip()
     if not re.match(REGEX_USER_PASSWORD, user_password): raise Exception(lans('invalid_password'), 400)
     return user_password
 
 ##############################
-def validate_user_password_confirm(lan):
+def validate_user_password_confirm():
     user_password = request.form.get("user_password_confirm", "").strip()
     if not re.match(REGEX_USER_PASSWORD, user_password): raise Exception(lans('twitter_password'), 400)
     return user_password
 
 ##############################
 REGEX_UUID4 = "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-def validate_uuid4(uuid4 = "", lan="english"):
+def validate_uuid4(uuid4 = ""):
     if not uuid4:
         uuid4 = request.values.get("uuid4", "").strip()
     if not re.match(REGEX_UUID4, uuid4): raise Exception(lans('twitter_uuid4_dashes'), 400)
@@ -131,7 +131,7 @@ def validate_uuid4(uuid4 = "", lan="english"):
 
 ##############################
 REGEX_UUID4_WITHOUT_DASHES = "^[0-9a-f]{8}[0-9a-f]{4}4[0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$"
-def validate_uuid4_without_dashes(uuid4 = "", lan="english"):
+def validate_uuid4_without_dashes(uuid4 = "", ):
     error = lans('twitter_uuid4')
     if not uuid4: raise Exception(error, 400)
     uuid4 = uuid4.strip()

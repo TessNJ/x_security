@@ -39,7 +39,11 @@
             {% include "_tweet_admin.html" %}
             {% endfor %}
         </div>
-        {% include "___show_more_posts_admin.html" %}
+        <div class="admin_show_more">
+            {% if next_page != 0%}
+            {% include "___show_more_posts_admin.html" %}
+            {% endif%}
+        </div>
     </main>
         
     

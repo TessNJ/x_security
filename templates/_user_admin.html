@@ -1,0 +1,28 @@
+<div class="admin-user">
+    <div class="d-flex a-items-center user-display">
+        <img src="{{ url_for('static', filename='uploads/' ~ (user.user_avatar_path if user.user_avatar_path else 'unknown.jpg')) }}"
+            class="w-8 h-8 rounded-full" alt="Profile Picture">
+        <div class="w-full ml-2">
+            <p class="">
+                {{ user.user_first_name }} {{ user.user_last_name }}
+                <span class="text-c-gray:+20 text-70">@{{ user.user_username }}</span>
+            </p>
+
+        </div>
+
+    </div>
+    <div class="admin-control">
+        {%if user.user_deleted_at != 0%}
+        <p>User is deleted</p>
+        {%endif%}
+
+        {%if user.user_deleted_at == 0 %}
+            {%if user.user_is_blocked == 0%}
+                {%include "___button_block_user.html"%}
+            {%else%}
+                {%include "___button_unblock_user.html"%}
+            {%endif%}
+        {%endif%}
+        <div id="block_confirm_{{user.user_pk}}" class="pop_up_confirm"></div>
+    </div>
+</div>
