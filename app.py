@@ -616,10 +616,19 @@ def delete_user() :
         email_user_deleted = render_template("_email_user_deleted.html", lan=x.default_language, x=x)
         x.send_email(user_email, "Your account has been deleted", email_user_deleted)
 
-        # TODO: Delete post from user
-        # TODO: Delete follows from user
-        # TODO: Delete likes from user
+        q="UPDATE posts SET post_deleted_at = %s WHERE post_user_fk = %s"
+        cursor.execute(q, (user_deleted_at, user_pk))
+        
+        q="UPDATE comments SET comment_deleted_at = %s WHERE comment_user_fk = %s"
+        cursor.execute(q, (user_deleted_at, user_pk))
 
+        q="DELETE FROM follows WHERE follower_fk = %s"
+        cursor.execute(q, (user_pk,))
+        
+        q="DELETE FROM likes WHERE liker_user_fk = %s"
+        cursor.execute(q, (user_pk,))
+        db.commit()
+        
         session.clear()
         return redirect(url_for("login"))
 
