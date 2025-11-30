@@ -1238,7 +1238,7 @@ def following():
     try:
         db, cursor = x.db()
         user_follower = session.get("user", "")
-        q = "SELECT * FROM users WHERE user_pk != %s AND users.user_pk IN ( SELECT follows.followed_fk FROM follows WHERE follows.follower_fk = %s )"
+        q = "SELECT * FROM users WHERE user_is_blocked = 0 AND user_deleted_at = 0 AND user_pk != %s AND users.user_pk IN ( SELECT follows.followed_fk FROM follows WHERE follows.follower_fk = %s )"
         cursor.execute(q, (user_follower["user_pk"], user_follower["user_pk"],))
         user_all_following = cursor.fetchall()
 
@@ -1259,29 +1259,6 @@ def following():
         if "db" in locals(): db.close()
 
 
-# ##############################
-# @app.post("/api-search")
-# @x.no_cache
-# def api_search():
-#     lan = session["user"]["user_language"]
-#     try:
-#         # TODO: The input search_for must be validated
-#         search_for = request.form.get("search_for", "")
-#         if not search_for: return """empty search field""", 400
-#         part_of_query = f"%{search_for}%"
-#         # ic(search_for)
-#         db, cursor = x.db()
-#         q = "SELECT * FROM users WHERE user_is_blocked = 0 AND user_deleted_at = 0 AND user_username LIKE %s"
-#         cursor.execute(q, (part_of_query,))
-#         users = cursor.fetchall()
-#         return jsonify(users)
-#     except Exception as ex:
-#         ic(ex)
-#         return str(ex)
-#     finally:
-#         if "cursor" in locals(): cursor.close()
-#         if "db" in locals(): db.close()
-
 ##############################
 @app.post("/api-search")
 @x.no_cache
@@ -1300,6 +1277,17 @@ def api_search():
         q = "SELECT * FROM users WHERE user_is_blocked = 0 AND user_deleted_at = 0 AND user_username LIKE %s AND user_username != %s"
         cursor.execute(q, (part_of_query, user["user_username"]))
         users = cursor.fetchall()
+
+        q = "SELECT * FROM follows WHERE follower_fk = %s"
+        cursor.execute(q, (user["user_pk"],))
+        following = cursor.fetchall()
+        ic(following)
+
+        for search_user in users:
+            q="SELECT EXISTS(SELECT * FROM follows WHERE follower_fk = %s AND followed_fk = %s) AS followed"
+            cursor.execute(q, (user["user_pk"], search_user["user_pk"]))
+            search_user["followed"] = bool(cursor.fetchone()["followed"])
+
         orange_box = render_template("_orange_box.html", users=users)
         return f"""
             <browser mix-remove="#search_results"></browser>

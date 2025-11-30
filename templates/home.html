@@ -92,17 +92,9 @@
         </main>
 
         <aside>
-            <form id="search_form" >
-                <!-- <input mix-post="/api-search" mix-input mix-delay="300" name="search_for" type="text" placeholder="Search Twitter"> -->
-                <input id="txt_search_for" name="search_for" type="text" placeholder="Search Twitter"
-                    oninput="get_search_results('/api-search', 'post', '#search_form', 'parse_search_results')">
-                <button class="cursor-pointer">{{x.lans('search')}}</button>
-
-                <div id="search_results" class="
-                d-none
-                p-absolute top-8 left-0 w-full bg-c-white h-50 pa-4
-                border-1 border-c-gray:+50 rounded-sm">
-                </div>
+            <form id="search_form" class="p-relative">
+                <input mix-post="/api-search" mix-input mix-delay="1000" name="search_for" type="text" placeholder="Search Twitter">
+                <button class="cursor-pointer">Search</button>                             
             </form>
 
             <div class="border-1 border-c-gray:+50 rounded-md pa-3">
