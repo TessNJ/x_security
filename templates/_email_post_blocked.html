@@ -1,0 +1,13 @@
+<h1>Post blocked</h1>
+<h2>Your post was blocked by an administrator</h2>
+<p>You are no longer able to see or interact with your post. If you believe this is a mistake, please contact the support team </p>
+
+<p>Post message: {{message}}</p>
+{% if tweet.post_image_path: %}
+<p>Post image:</p>
+<img src="{{ url_for('static', filename='images/' ~ tweet.post_image_path) }}" alt="Post image" class="w-80">
+{% endif %}
+
+<p>
+    <a href="http://127.0.0.1/login">Go to X</a>
+</p>

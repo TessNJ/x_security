@@ -891,7 +891,7 @@ def api_cancel_confirm():
         post_pk = request.args.get("key", "")
 
         return f"""
-            <browser mix-update="#delete_{post_pk}"></browser>
+            <browser mix-update="#delete_post_confirm"></browser>
         """
     except Exception as ex:
         if ex.args[1] == 400:
@@ -918,7 +918,7 @@ def api_delete_post():
             ic(confirm_delete)
 
             return f"""
-            <browser mix-update="#delete_{post_pk}">{confirm_delete}</browser>
+            <browser mix-update="#delete_post_confirm">{confirm_delete}</browser>
             """
         except Exception as ex:
             ic(ex)
@@ -1752,6 +1752,10 @@ def block_post():
         tweet["user_username"] = username
 
         new_input = render_template("___button_unblock_post.html", tweet=tweet)
+
+        # email_post_blocked = render_template("_email_post_blocked.html", tweet, lan=x.default_language)
+        # ic(email_verify_account)
+        # x.send_email(user_email, "Verify your account", email_post_blocked)
 
         return f"""
             <browser mix-replace="#post_block_{post_pk}">
