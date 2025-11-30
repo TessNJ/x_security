@@ -387,7 +387,7 @@ def home(lan="english"):
         next_page = 2
 
         db, cursor = x.db()
-        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
+        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
         cursor.execute(q)
         tweets = cursor.fetchall()
         # ic(tweets)
@@ -406,7 +406,7 @@ def home(lan="english"):
 
         user_follower = session.get("user", "")
 
-        q = "SELECT * FROM users WHERE user_pk != %s AND users.user_pk NOT IN ( SELECT follows.followed_fk FROM follows WHERE follows.follower_fk = %s ) ORDER BY RAND() LIMIT 3"
+        q = "SELECT * FROM users WHERE user_pk != %s AND user_is_blocked = 0 AND user_deleted_at = 0 AND users.user_pk NOT IN ( SELECT follows.followed_fk FROM follows WHERE follows.follower_fk = %s ) ORDER BY RAND() LIMIT 3"
         cursor.execute(q, (user_follower["user_pk"], user_follower["user_pk"],))
         suggestions = cursor.fetchall()
 
@@ -440,7 +440,7 @@ def home_comp():
         lan = session["user"]["user_language"]
         if not user: return "error" #maybe not needed
         db, cursor = x.db()
-        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
+        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
         cursor.execute(q)
         tweets = cursor.fetchall()
         # ic(tweets)
@@ -953,28 +953,18 @@ def api_delete_post():
             user = session.get("user", "")
             # lan = session["user"]["user_language"]
             if not user: return "error" #maybe not needed
-            # db, cursor = x.db()
-            q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
+
+            q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
             cursor.execute(q)
             tweets = cursor.fetchall()
-            # ic(tweets)
             
             for tweet in tweets:
                 q="SELECT EXISTS(SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s) AS liked"
                 cursor.execute(q, (user["user_pk"], tweet["post_pk"]))
                 tweet["liked"] = bool(cursor.fetchone()["liked"])
-            # ic(tweets)
 
             html = render_template("_home_comp.html", tweets=tweets)
             return f"""<mixhtml mix-update="main">{ html }</mixhtml>"""
-            
-            # return f"""
-            # <browser mix-update="#delete_{tweet['post_pk']}"></browser>
-            # <browser mix-remove="#post_full_{tweet['post_pk']}"></browser>
-            # """
-            # return f"""
-            # <browser mix-redirect="/home"></browser>
-            # """
                 
         except Exception as ex:
             ic(ex)
@@ -1269,22 +1259,52 @@ def following():
         if "db" in locals(): db.close()
 
 
+# ##############################
+# @app.post("/api-search")
+# @x.no_cache
+# def api_search():
+#     lan = session["user"]["user_language"]
+#     try:
+#         # TODO: The input search_for must be validated
+#         search_for = request.form.get("search_for", "")
+#         if not search_for: return """empty search field""", 400
+#         part_of_query = f"%{search_for}%"
+#         # ic(search_for)
+#         db, cursor = x.db()
+#         q = "SELECT * FROM users WHERE user_is_blocked = 0 AND user_deleted_at = 0 AND user_username LIKE %s"
+#         cursor.execute(q, (part_of_query,))
+#         users = cursor.fetchall()
+#         return jsonify(users)
+#     except Exception as ex:
+#         ic(ex)
+#         return str(ex)
+#     finally:
+#         if "cursor" in locals(): cursor.close()
+#         if "db" in locals(): db.close()
+
 ##############################
 @app.post("/api-search")
 @x.no_cache
 def api_search():
-    lan = session["user"]["user_language"]
     try:
         # TODO: The input search_for must be validated
+        user = session.get("user", "")
         search_for = request.form.get("search_for", "")
-        if not search_for: return """empty search field""", 400
+        if not search_for:
+            return """
+            <browser mix-remove="#search_results"></browser>
+            """
         part_of_query = f"%{search_for}%"
-        # ic(search_for)
+        ic(search_for)
         db, cursor = x.db()
-        q = "SELECT * FROM users WHERE user_username LIKE %s"
-        cursor.execute(q, (part_of_query,))
+        q = "SELECT * FROM users WHERE user_is_blocked = 0 AND user_deleted_at = 0 AND user_username LIKE %s AND user_username != %s"
+        cursor.execute(q, (part_of_query, user["user_username"]))
         users = cursor.fetchall()
-        return jsonify(users)
+        orange_box = render_template("_orange_box.html", users=users)
+        return f"""
+            <browser mix-remove="#search_results"></browser>
+            <browser mix-bottom="#search_form">{orange_box}</browser>
+        """
     except Exception as ex:
         ic(ex)
         return str(ex)
@@ -1654,12 +1674,10 @@ def api_get_tweets_admin():
 def confirm_block_post():
     try: 
         post_pk = request.args.get("key", "")
-
         username = request.args.get("username", "")
 
         tweet = {}
         tweet["post_pk"] = post_pk
-
         tweet["user_username"] = username
         confirm_block_post = render_template("___confirm_block_post.html", tweet=tweet)
 
@@ -1681,12 +1699,10 @@ def confirm_block_post():
 def confirm_unblock_post():
     try: 
         post_pk = request.args.get("key", "")
-
         username = request.args.get("username", "")
 
         tweet = {}
         tweet["post_pk"] = post_pk
-
         tweet["user_username"] = username
         confirm_unblock_post = render_template("___confirm_unblock_post.html", tweet=tweet)
 
@@ -1732,7 +1748,7 @@ def block_post():
         post_pk = request.args.get("key", "")
         
         db, cursor = x.db()
-        q="SELECT * FROM posts WHERE post_pk = %s"
+        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_pk = %s"
         cursor.execute(q, (post_pk,))
         tweet = cursor.fetchone()
 
@@ -1743,21 +1759,20 @@ def block_post():
         cursor.execute(q, (post_pk, ))
         db.commit()
         if cursor.rowcount != 1: raise Exception("post couldnt be blocked", 400)
-        
-        username = request.args.get("username", "")
-
-        tweet = {}
-        tweet["post_pk"] = post_pk
-
-        tweet["user_username"] = username
 
         new_input = render_template("___button_unblock_post.html", tweet=tweet)
+        ic(tweet)
 
-        # email_post_blocked = render_template("_email_post_blocked.html", tweet, lan=x.default_language)
+        post_image = tweet["post_image_path"]
+
+        email_post_blocked = render_template("_email_post_blocked.html", tweet=tweet, lan=x.default_language)
         # ic(email_verify_account)
-        # x.send_email(user_email, "Verify your account", email_post_blocked)
+        x.send_email_post(tweet["user_email"], "A post on X has been blocked", email_post_blocked, post_image) 
+       
+        toast_ok = render_template("___toast_ok.html", message="Email sent successfully!")
 
         return f"""
+            <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-replace="#post_block_{post_pk}">
                 {new_input}
             </browser>
@@ -1787,7 +1802,7 @@ def unblock_post():
         post_pk = request.args.get("key", "")
         
         db, cursor = x.db()
-        q="SELECT * FROM posts WHERE post_pk = %s"
+        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_pk = %s"
         cursor.execute(q, (post_pk,))
         tweet = cursor.fetchone()
 
@@ -1799,16 +1814,17 @@ def unblock_post():
         db.commit()
         if cursor.rowcount != 1: raise Exception("post couldnt be unblocked", 400)
 
-        username = request.args.get("username", "")
-
-        tweet = {}
-        tweet["post_pk"] = post_pk
-
-        tweet["user_username"] = username
-
         new_input = render_template("___button_block_post.html", tweet=tweet)
+        post_image = tweet["post_image_path"]
+
+        email_post_unblocked = render_template("_email_post_unblocked.html", tweet=tweet, lan=x.default_language)
+        # ic(email_verify_account)
+        x.send_email_post(tweet["user_email"], "A post on X has been unblocked", email_post_unblocked, post_image) 
+       
+        toast_ok = render_template("___toast_ok.html", message="Email sent successfully!")
 
         return f"""
+            <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-replace="#post_block_{post_pk}">
                 {new_input}
             </browser>
@@ -1976,7 +1992,6 @@ def confirm_unblock_user():
 @x.no_cache
 def confirm_user_cancel():
     try: 
-        user_pk = request.args.get("key", "")
         return f"""
         <browser mix-update="#block_confirm"></browser>
         """
@@ -2013,15 +2028,16 @@ def block_user():
         db.commit()
         if cursor.rowcount != 1: raise Exception("user couldnt be blocked", 400)
 
-        username = request.args.get("username", "")
-
-        user = {}
-        user["user_pk"] = user_pk
-        user["user_username"] = username
-
         new_input = render_template("___button_unblock_user.html", user=user)
+        
+        email_user_blocked = render_template("_email_user_blocked.html", lan=x.default_language)
+        # ic(email_verify_account)
+        x.send_email(user["user_email"], "Account has been blocked", email_user_blocked) 
+       
+        toast_ok = render_template("___toast_ok.html", message="Email sent successfully!")
 
         return f"""
+            <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-replace="#user_block_{user_pk}">
                 {new_input}
             </browser>
@@ -2063,15 +2079,16 @@ def unblock_user():
         db.commit()
         if cursor.rowcount != 1: raise Exception("user couldnt be unblocked", 400)
 
-        username = request.args.get("username", "")
-
-        user = {}
-        user["user_pk"] = user_pk
-        user["user_username"] = username
-
         new_input = render_template("___button_block_user.html", user=user)
+        
+        email_user_unblocked = render_template("_email_user_unblocked.html", lan=x.default_language)
+        # ic(email_verify_account)
+        x.send_email(user["user_email"], "Account has been unblocked", email_user_unblocked) 
+       
+        toast_ok = render_template("___toast_ok.html", message="Email sent successfully!")
 
         return f"""
+            <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-replace="#user_block_{user_pk}">
                 {new_input}
             </browser>

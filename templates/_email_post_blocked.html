@@ -2,10 +2,10 @@
 <h2>Your post was blocked by an administrator</h2>
 <p>You are no longer able to see or interact with your post. If you believe this is a mistake, please contact the support team </p>
 
-<p>Post message: {{message}}</p>
+<p>Post message: {{tweet.post_message}}</p>
 {% if tweet.post_image_path: %}
 <p>Post image:</p>
-<img src="{{ url_for('static', filename='images/' ~ tweet.post_image_path) }}" alt="Post image" class="w-80">
+<img src="cid:post_image" alt="Post image" width="300">
 {% endif %}
 
 <p>

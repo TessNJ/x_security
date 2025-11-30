@@ -3,6 +3,7 @@
     <p>They will be notified via email</p>
     <div>
         <a mix-get href="/confirm_user_cancel?key={{user.user_pk}}">Cancel</a>
-        <a mix-post href="/api-unblock-user?key={{user.user_pk}}&username={{user.user_username}}">Unblock</a>
+        <a mix-post href="/api-unblock-user?key={{user.user_pk}}&username={{user.user_username}}" mix-default="Unblock" 
+            mix-await="Unblocking...">Unblock</a>
     </div>
 </div>

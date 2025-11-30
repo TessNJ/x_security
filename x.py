@@ -12,6 +12,7 @@ load_dotenv()
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 
 from functools import wraps
 
@@ -182,9 +183,56 @@ def send_email(to_email, subject, template):
 
     except Exception as ex:
         ic(ex)
-        raise Exception("cannot send email", 500)
+        raise Exception("Email wasnt sent", 400)
     finally:
         pass
+
+
+##############################
+def send_email_post(to_email, subject, template, post_image):
+    try:
+        # Email and password of the sender's Gmail account
+        sender_email = app.config['GMAIL_EMAIL']
+        password = app.config['GMAIL_KEY']
+
+        # Receiver email address
+        receiver_email = sender_email
+
+        # Create the email message
+        message = MIMEMultipart()
+        message["From"] = "X clone"
+        message["To"] = to_email
+        message["Subject"] = subject
+
+        # Body of the email
+        message.attach(MIMEText(template, "html"))
+
+
+        if post_image != "":
+            ic('/static/images/'+post_image)
+            path = './static/images/'+post_image
+            
+            fp = open(path, 'rb')
+            ic(fp)
+            image = MIMEImage(fp.read())
+            fp.close()
+
+            image.add_header('Content-ID', '<post_image>')
+            message.attach(image)
+
+        # Connect to Gmail's SMTP server and send the email
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls() 
+            server.login(sender_email, password)
+            server.sendmail(sender_email, receiver_email, message.as_string())
+        ic("Email sent successfully!")
+
+        return "email sent"
+
+    except Exception as ex:
+        ic(ex)
+
+        raise Exception("Email wasnt sent", 400)
 
 ##############################
 def validate_user_logged():

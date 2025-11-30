@@ -2,8 +2,11 @@
 <h2>Your post was unblocked by an administrator</h2>
 <p>Contratulations. You are now able to see your post again</p>
 
-<p>Post message:</p>
+<p>Post message: {{tweet.post_message}}</p>
+{% if tweet.post_image_path: %}
 <p>Post image:</p>
+<img src="cid:post_image" alt="Post image" width="300">
+{% endif %}
 
 <p>
     <a href="http://127.0.0.1/login">Go to X</a>

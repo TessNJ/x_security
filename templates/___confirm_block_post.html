@@ -4,6 +4,7 @@
     <p>They will be notified via email</p>
     <div>
         <a mix-get href="/confirm_post_cancel?key={{tweet.post_pk}}">Cancel</a>
-        <a mix-post href="/api-block-post?key={{tweet.post_pk}}&username={{tweet.user_username}}">Block</a>
+        <a mix-post href="/api-block-post?key={{tweet.post_pk}}&username={{tweet.user_username}}" mix-default="Block" 
+            mix-await="Blocking...">Block</a>
     </div>
 </div>

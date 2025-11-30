@@ -15,7 +15,10 @@
 
     <input type="hidden" id="hidden_{{tweet.post_pk}}" name="hidden_{{tweet.post_pk}}" value="originalIMG">
 
-    <input name="post_image_{{tweet.post_pk}}" id="post_image_{{tweet.post_pk}}" type="file" accept="image/*" onchange="show_post_preview()">
+    <label for="post_image_{{tweet.post_pk}}">
+        <span>Attach image. PNG and JPEG only</span>
+    </label>
+    <input name="post_image_{{tweet.post_pk}}" id="post_image_{{tweet.post_pk}}" type="file" accept="image/png, image/jpeg" onchange="show_post_preview()">
     <button type="button" onclick="removeImage()" id="button_{{tweet.post_pk}}">delete image</button>
 
     <button href="/api-cancel-post?key={{tweet.post_pk}}" mix-get 

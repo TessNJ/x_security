@@ -2,9 +2,9 @@
     <textarea name="post" placeholder="What is new ?" 
     class="w-full outline-1 outline-s-solid outline-c-gray:+50 pa-2"></textarea>
     <label for="post_image_attach">
-        <span>Attach image</span>
+        <span>Attach image. PNG and JPEG only</span>
     </label>
-    <input name="post_image_attach" id="post_image_attach" type="file" accept="image/*">
+    <input name="post_image_attach" id="post_image_attach" type="file" accept="image/png, image/jpeg">
     <button mix-default="Post" mix-await="Posting ..." 
     class="w-auto ml-auto mt-2 bg-c-black text-c-white py-2 px-12 rounded-xl">
         {{x.lans('post')}}
