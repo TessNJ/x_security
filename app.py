@@ -1664,7 +1664,7 @@ def confirm_block_post():
         confirm_block_post = render_template("___confirm_block_post.html", tweet=tweet)
 
         return f"""
-        <browser mix-update="#block_confirm_{post_pk}">{confirm_block_post}</browser>
+        <browser mix-update="#block_confirm">{confirm_block_post}</browser>
         """
     except Exception as ex:
         ic(ex)
@@ -1691,7 +1691,7 @@ def confirm_unblock_post():
         confirm_unblock_post = render_template("___confirm_unblock_post.html", tweet=tweet)
 
         return f"""
-        <browser mix-update="#block_confirm_{post_pk}">{confirm_unblock_post}</browser>
+        <browser mix-update="#block_confirm">{confirm_unblock_post}</browser>
         """
     except Exception as ex:
         ic(ex)
@@ -1709,7 +1709,7 @@ def confirm_post_cancel():
     try: 
         post_pk = request.args.get("key", "")
         return f"""
-        <browser mix-update="#block_confirm_{post_pk}"></browser>
+        <browser mix-update="#block_confirm"></browser>
         """
     except Exception as ex:
         ic(ex)
@@ -1757,7 +1757,7 @@ def block_post():
             <browser mix-replace="#post_block_{post_pk}">
                 {new_input}
             </browser>
-            <browser mix-update="#block_confirm_{post_pk}"></browser>
+            <browser mix-update="#block_confirm"></browser>
         """
     except Exception as ex:
         ic(ex)
@@ -1808,7 +1808,7 @@ def unblock_post():
             <browser mix-replace="#post_block_{post_pk}">
                 {new_input}
             </browser>
-            <browser mix-update="#block_confirm_{post_pk}"></browser>
+            <browser mix-update="#block_confirm"></browser>
         """
     except Exception as ex:
         ic(ex)
@@ -1930,7 +1930,7 @@ def confirm_block_user():
         confirm_block_user = render_template("___confirm_block_user.html", user=user)
 
         return f"""
-        <browser mix-update="#block_confirm_{user_pk}">{confirm_block_user}</browser>
+        <browser mix-update="#block_confirm">{confirm_block_user}</browser>
         """
     except Exception as ex:
         ic(ex)
@@ -1956,7 +1956,7 @@ def confirm_unblock_user():
         confirm_unblock_user = render_template("___confirm_unblock_user.html", user=user)
 
         return f"""
-        <browser mix-update="#block_confirm_{user_pk}">{confirm_unblock_user}</browser>
+        <browser mix-update="#block_confirm">{confirm_unblock_user}</browser>
         """
     except Exception as ex:
         ic(ex)
@@ -1974,7 +1974,7 @@ def confirm_user_cancel():
     try: 
         user_pk = request.args.get("key", "")
         return f"""
-        <browser mix-update="#block_confirm_{user_pk}"></browser>
+        <browser mix-update="#block_confirm"></browser>
         """
     except Exception as ex:
         ic(ex)
@@ -2021,7 +2021,7 @@ def block_user():
             <browser mix-replace="#user_block_{user_pk}">
                 {new_input}
             </browser>
-            <browser mix-update="#block_confirm_{user_pk}"></browser>
+            <browser mix-update="#block_confirm"></browser>
         """
     except Exception as ex:
         ic(ex)
@@ -2071,7 +2071,7 @@ def unblock_user():
             <browser mix-replace="#user_block_{user_pk}">
                 {new_input}
             </browser>
-            <browser mix-update="#block_confirm_{user_pk}"></browser>
+            <browser mix-update="#block_confirm"></browser>
         """
     except Exception as ex:
         ic(ex)
