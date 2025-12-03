@@ -6,7 +6,6 @@ import x
 import time
 import uuid
 import os
-# import dictionary
 import requests
 import io
 import csv
@@ -21,19 +20,16 @@ ic.configureOutput(prefix=f'----- | ', includeContext=True)
 app = Flask(__name__)
 
 # Set the maximum file size to 10 MB
-# app.config['MAX_CONTENT_LENGTH'] = 256 * 1024 * 1024   # 1 MB
 app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024   # 1 MB
 
 app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
 
-upload_folder = "./static/uploads"
-app.config['UPLOAD_FOLDER'] = upload_folder
-
 post_upload_folder = "./static/images"
 app.config['POST_UPLOAD_FOLDER'] = post_upload_folder
 
 upload_folder = "/home/TereseNJ/mysite/static/uploads" if x.python_domain else "./static/uploads"
+app.config['UPLOAD_FOLDER'] = upload_folder
 app.config['ADMIN_EMAIL'] = os.getenv('ADMIN_EMAIL')
 app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
 app.config['GOOGLE_SPREADSHEET_KEY'] = os.getenv('GOOGLE_SPREADSHEET_KEY')
@@ -56,7 +52,6 @@ def view_index():
 @app.context_processor
 def global_variables():
     return dict (
-        # dictionary = dictionary,
         x = x
     )
 
@@ -70,7 +65,6 @@ def login(lan = "english"):
     x.default_language = lan
 
     if request.method == "GET":
-        # message = request.args.get("message", "")
         message = session.get("message", "")
         session["message"] = ""
 
@@ -79,8 +73,6 @@ def login(lan = "english"):
 
     if request.method == "POST":
         try:
-            # lan = session["user"]["user_language"]
-
             # Validate
             user_email = x.validate_user_email()
             user_password = x.validate_user_password()
@@ -90,16 +82,16 @@ def login(lan = "english"):
             db, cursor = x.db()
             cursor.execute(q, (user_email,))
             user = cursor.fetchone()
-            if not user: raise Exception(x.lans('user_not_found'), 400)
+            if not user: raise Exception(x.lans('user_not_found').capitalize(), 400)
 
             if not check_password_hash(user["user_password"], user_password):
-                raise Exception(x.lans('invalid_credentials'), 400)
+                raise Exception(x.lans('invalid_credentials').capitalize(), 400)
 
             if user["user_verification_key"] != "":
-                raise Exception(x.lans('user_not_verified'), 400)
+                raise Exception(x.lans('user_not_verified').capitalize(), 400)
             if user["user_deleted_at"] != 0 :
                 # raise Exception(x.lans('user_deleted'), 400)
-                raise Exception("user deactivated. Contact support", 400)
+                raise Exception(x.lans('user_deactivated"').capitalize(), 400)
 
             user.pop("user_password")
             user["user_language"] = x.default_language
@@ -116,7 +108,7 @@ def login(lan = "english"):
                 return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
 
             # System or developer error
-            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance'))
+            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
         finally:
@@ -178,7 +170,7 @@ def signup(lan = "english"):
             # send verification email
             email_verify_account = render_template("_email_verify_account.html", user_verification_key=user_verification_key, lan=lan)
             # ic(email_verify_account)
-            x.send_email(user_email, "Verify your account", email_verify_account)
+            x.send_email(user_email, x.lans("verify_your_account").capitalize(), email_verify_account)
 
             return f"""<mixhtml mix-redirect="{ url_for('login') }"></mixhtml>""", 400
         except Exception as ex:
@@ -190,14 +182,14 @@ def signup(lan = "english"):
 
             # Database errors
             if "Duplicate entry" and user_email in str(ex):
-                toast_error = render_template("___toast_error.html", message=x.lans('email_registered'))
+                toast_error = render_template("___toast_error.html", message=x.lans('email_registered').capitalize())
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
             if "Duplicate entry" and user_username in str(ex):
-                toast_error = render_template("___toast_error.html", message=x.lans('username_registered'))
+                toast_error = render_template("___toast_error.html", message=x.lans('username_registered').capitalize())
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
             # System or developer error
-            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance'))
+            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
             return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
 
         finally:
@@ -218,7 +210,7 @@ def verify_account():
         q = "UPDATE users SET user_verification_key = '', user_verified_at = %s WHERE user_verification_key = %s"
         cursor.execute(q, (user_verified_at, user_verification_key))
         db.commit()
-        if cursor.rowcount != 1: raise Exception("Invalid key", 400)
+        if cursor.rowcount != 1: raise Exception(x.lans('invalid_key').capitalize(), 400)
         return redirect( url_for('login') )
     except Exception as ex:
         ic(ex)
@@ -230,7 +222,7 @@ def verify_account():
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
         # System or developer error
-        toast_error = render_template("___toast_error.html", message="Cannot verify user")
+        toast_error = render_template("___toast_error.html", message=x.lans('cannot_verify"').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
@@ -259,13 +251,13 @@ def request_password(lan="english"):
             cursor.execute(q, (user_email,))
             user = cursor.fetchone()
 
-            if not user: raise Exception(x.lans('user_not_found'), 400)
+            if not user: raise Exception(x.lans('user_not_found').capitalize(), 400)
 
             if user["user_verification_key"] != "":
-                raise Exception(x.lans('user_not_verified'), 400)
+                raise Exception(x.lans('user_not_verified').capitalize(), 400)
             
             if user["user_deleted_at"] != 0 :
-                raise Exception("user deactivated. Contact support", 400)
+                raise Exception(x.lans('user_deactivated').capitalize(), 400)
             
             user_password_reset = uuid.uuid4().hex
 
@@ -275,9 +267,9 @@ def request_password(lan="english"):
             
             email_forgot_password = render_template("_email_forgot_password.html", user_password_reset=user_password_reset, lan=x.default_language)
             # ic(email_forgot_password)
-            x.send_email(user_email, "Set a new password", email_forgot_password)
+            x.send_email(user_email, x.lans('set_new_password').capitalize(), email_forgot_password)
 
-            toast_ok = render_template("___toast_ok.html", message="A password reset has been sent to your email")
+            toast_ok = render_template("___toast_ok.html", message=x.lans('password_reset_sent').capitalize())
 
             return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -289,7 +281,7 @@ def request_password(lan="english"):
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
             # System or developer error
-            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
             if "cursor" in locals(): cursor.close()
@@ -308,7 +300,7 @@ def change_password(lan = "english"):
 
     if request.method == "GET":
         try:
-            if len(request.args.get("key", "")) != 32: raise Exception("Link is invalid. Request a new link", 400)
+            if len(request.args.get("key", "")) != 32: raise Exception(x.lans('link_is_invalid').capitalize(), 400)
             user_password_reset = x.validate_uuid4_without_dashes(request.args.get("key", ""),lan)
             
             db, cursor = x.db()
@@ -316,7 +308,7 @@ def change_password(lan = "english"):
             cursor.execute(q, (user_password_reset,))
             user = cursor.fetchone()
 
-            if not user: raise Exception("Link is invalid. Request a new link", 400)
+            if not user: raise Exception(x.lans('link_is_invalid').capitalize(), 400)
 
         
             return render_template("change_password.html", lan=lan, x=x, user_password_reset=user_password_reset)
@@ -330,7 +322,7 @@ def change_password(lan = "english"):
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
             # System or developer error
-            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
         finally:
@@ -348,9 +340,9 @@ def change_password(lan = "english"):
             q = "UPDATE users SET user_password_reset = '', user_password = %s WHERE user_password_reset = %s"
             cursor.execute(q, (user_hashed_password, user_password_reset))
             db.commit()
-            if cursor.rowcount != 1: raise Exception("Link is invalid. Request a new link", 400)
+            if cursor.rowcount != 1: raise Exception(x.lans('link_is_invalid').capitalize(), 400)
 
-            session["message"] = "Your password has been changed"
+            session["message"] = x.lans('updated_password').capitalize()
 
             return f"""
             <browser mix-redirect="/login"></browser>
@@ -366,7 +358,7 @@ def change_password(lan = "english"):
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
             # System or developer error
-            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
         finally: 
@@ -422,7 +414,7 @@ def home(lan="english"):
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -460,7 +452,7 @@ def home_comp():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -494,7 +486,7 @@ def profile():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -544,7 +536,7 @@ def api_update_profile():
         session["user"] = user_db
 
         # Response to the browser
-        toast_ok = render_template("___toast_ok.html", message=x.lans('update_successful'))
+        toast_ok = render_template("___toast_ok.html", message=x.lans('update_successful').capitalize())
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-update="#profile_tag .name">{user_first_name}</browser>
@@ -555,7 +547,6 @@ def api_update_profile():
         """, 200
     except Exception as ex:
         ic(ex)
-        ic(ex)
         if "db" in locals(): db.rollback()
 
         # User errors
@@ -565,14 +556,14 @@ def api_update_profile():
 
         # Database errors
         if "Duplicate entry" and user_email in str(ex):
-            toast_error = render_template("___toast_error.html", message=x.lans('email_registered'))
+            toast_error = render_template("___toast_error.html", message=x.lans('email_registered').capitalize())
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
         if "Duplicate entry" and user_username in str(ex):
-            toast_error = render_template("___toast_error.html", message=x.lans('username_registered'))
+            toast_error = render_template("___toast_error.html", message=x.lans('username_registered').capitalize())
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
         # System or developer error
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintanence'))
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintanence').capitalize())
         return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
 
     finally:
@@ -614,7 +605,7 @@ def delete_user() :
         db.commit()
 
         email_user_deleted = render_template("_email_user_deleted.html", lan=x.default_language, x=x)
-        x.send_email(user_email, "Your account has been deleted", email_user_deleted)
+        x.send_email(user_email, x.lans('email_account_is_deleted').capitalize(), email_user_deleted)
 
         q="UPDATE posts SET post_deleted_at = %s WHERE post_user_fk = %s"
         cursor.execute(q, (user_deleted_at, user_pk))
@@ -641,7 +632,7 @@ def delete_user() :
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -686,7 +677,7 @@ def api_get_tweets():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -728,7 +719,7 @@ def api_create_post():
         cursor.execute(q, (post_pk, user_pk, post, post_image_path, post_total_likes, post_total_comments, post_created_at, post_updated_at, post_deleted_at, post_is_blocked))
         db.commit()
 
-        toast_ok = render_template("___toast_ok.html", message="The world is reading your post !")
+        toast_ok = render_template("___toast_ok.html", message=x.lans('the_world_is_reading').capitalize())
         tweet = {
             "user_first_name": user["user_first_name"],
             "user_last_name": user["user_last_name"],
@@ -755,11 +746,11 @@ def api_create_post():
 
         # User errors
         if "x-error post" in str(ex):
-            toast_error = render_template("___toast_error.html", message=f"Post - {x.POST_MIN_LEN} to {x.POST_MAX_LEN} characters")
+            toast_error = render_template("___toast_error.html", message=f"{x.lans('post_must_be')} - {x.POST_MIN_LEN} {x.lans('to')} {x.POST_MAX_LEN} {x.lans('characters')}")
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>"""
 
         # System or developer error
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
@@ -779,9 +770,7 @@ def api_update_post():
             cursor.execute(q, (post_pk,))
             tweet = cursor.fetchone()
 
-            if tweet["post_deleted_at"] != 0 : raise Exception("post is deleted", 400)
-                # toast_error = render_template("___toast_error.html", message="post is deleted")
-                # return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+            if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
 
             post_edit_container = render_template("___tweet-edit.html", tweet=tweet)
             return f"""
@@ -794,7 +783,7 @@ def api_update_post():
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
             if "cursor" in locals(): cursor.close()
@@ -808,7 +797,7 @@ def api_update_post():
             cursor.execute(q, (post_pk,))
             tweet = cursor.fetchone()
 
-            if tweet["post_deleted_at"] != 0 : raise Exception("post is deleted", 400)
+            if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
 
             imgState = request.form.get("hidden_"+tweet["post_pk"], "")
 
@@ -822,22 +811,18 @@ def api_update_post():
                 file_path = os.path.join(app.config['POST_UPLOAD_FOLDER'], new_name)
                 uploaded_file.save(file_path)
                 image_path = new_name
-                ic(" default or none")
-                ic(uploaded_file)
             elif imgState == "deleted":
                 image_path = ""
-                ic(" from file")
             post_updated_at = int(time.time())
-            # ic(image_path)
 
             ##### message
             post_message = x.validate_post(request.form.get("post", ""))
-            if not post_message : raise Exception("Error", 400)
+            if not post_message : raise Exception(x.lans('post_couldnt_update').capitalize(), 400)
 
             q = "UPDATE posts SET post_message = %s, post_image_path = %s, post_updated_at = %s WHERE post_pk = %s"
             cursor.execute(q, (post_message, image_path, post_updated_at, tweet["post_pk"] ))
             db.commit()
-            if cursor.rowcount != 1: raise Exception("post couldnt update", 400)
+            if cursor.rowcount != 1: raise Exception(x.lans('post_couldnt_update').capitalize(), 400)
 
             q="SELECT * FROM posts WHERE post_pk = %s"
             cursor.execute(q, (post_pk,))
@@ -857,7 +842,7 @@ def api_update_post():
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
             if "cursor" in locals(): cursor.close()
@@ -874,7 +859,7 @@ def api_cancel_post():
         cursor.execute(q, (post_pk,))
         tweet = cursor.fetchone()
 
-        if tweet["post_deleted_at"] != 0 : raise Exception("post is already deleted", 400)
+        if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_already_deleted').capitalize(), 400)
 
         post_edit_container = render_template("___tweet-display.html", tweet=tweet)
         return f"""
@@ -886,7 +871,7 @@ def api_cancel_post():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -907,7 +892,7 @@ def api_cancel_confirm():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 
@@ -936,7 +921,7 @@ def api_delete_post():
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
             if "cursor" in locals(): cursor.close()
@@ -950,14 +935,14 @@ def api_delete_post():
             cursor.execute(q, (post_pk,))
             tweet = cursor.fetchone()
 
-            if tweet["post_deleted_at"] != 0 : raise Exception("post is deleted", 400)
+            if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
 
             post_deleted_at = int(time.time())
 
             q = "UPDATE posts SET post_deleted_at = %s WHERE post_pk = %s"
             cursor.execute(q, (post_deleted_at, tweet["post_pk"] ))
             db.commit()
-            if cursor.rowcount != 1: raise Exception("post couldnt update", 400)
+            if cursor.rowcount != 1: raise Exception(x.lans('post_couldnt_update').capitalize(), 400)
 
             user = session.get("user", "")
             # lan = session["user"]["user_language"]
@@ -983,7 +968,7 @@ def api_delete_post():
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
             if "cursor" in locals(): cursor.close()
@@ -1002,7 +987,7 @@ def show_comments():
         cursor.execute(q, (post_pk,))
         post = cursor.fetchone()
 
-        if post["post_deleted_at"] != 0 : raise Exception("post is deleted", 400)
+        if post["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
 
         q = "SELECT * FROM users JOIN comments ON user_pk = comment_user_fk WHERE comment_deleted_at = 0 AND post_fk = %s ORDER BY comment_created_at DESC LIMIT 0, 5"
         cursor.execute(q, (post_pk,))
@@ -1024,7 +1009,7 @@ def show_comments():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1053,7 +1038,7 @@ def hide_comments():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 
@@ -1069,7 +1054,7 @@ def create_comments():
         cursor.execute(q, (post_pk,))
         post = cursor.fetchone()
 
-        if post["post_deleted_at"] != 0 : raise Exception("post is deleted", 400)
+        if post["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
 
         user = session.get("user", "")
         comment_message = x.validate_post(request.form.get("comment", ""))
@@ -1119,7 +1104,7 @@ def create_comments():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1177,7 +1162,7 @@ def create_follow():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1211,12 +1196,14 @@ def remove_follow():
         db.commit()
         
         ### Send data ###
-        # ------------------ Alternative???
-        q = "SELECT * FROM users WHERE user_pk = %s"
-        cursor.execute(q, (user_followed, ))
-        user_followed_data = cursor.fetchone()
+
+        suggestion = {}
+        suggestion["user_pk"] = user_followed
+        # q = "SELECT * FROM users WHERE user_pk = %s"
+        # cursor.execute(q, (user_followed, ))
+        # user_followed_data = cursor.fetchone()
         
-        new_input = render_template("___button_follow.html", suggestion=user_followed_data)
+        new_input = render_template("___button_follow.html", suggestion=suggestion)
 
         return f"""
             <browser mix-replace="#follow{user_followed}">
@@ -1233,7 +1220,7 @@ def remove_follow():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1261,7 +1248,7 @@ def following():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1304,7 +1291,13 @@ def api_search():
         """
     except Exception as ex:
         ic(ex)
-        return str(ex)
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
@@ -1370,7 +1363,7 @@ def create_like():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1437,7 +1430,7 @@ def remove_like():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1461,8 +1454,8 @@ def admin(lan="english") :
             email = request.form.get("user_email", "")
             password = request.form.get("user_password", "")
 
-            if  email != app.config['ADMIN_EMAIL'] : raise Exception(x.lans('Incorrect email'), 400)
-            if  password != app.config['ADMIN_PASSWORD'] : raise Exception(x.lans('Incorrect credentials'), 400)
+            if  email != app.config['ADMIN_EMAIL'] : raise Exception(x.lans('Incorrect email').capitalize(), 400)
+            if  password != app.config['ADMIN_PASSWORD'] : raise Exception(x.lans('Incorrect credentials').capitalize(), 400)
 
             admin = {}
             admin["email"] = app.config['ADMIN_EMAIL']
@@ -1476,7 +1469,7 @@ def admin(lan="english") :
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
         
@@ -1528,7 +1521,7 @@ def get_data_from_sheet():
             f.write(json_data)
 
         # return "ok"
-        toast_ok = render_template("___toast_ok.html", message="Dictionary updated")
+        toast_ok = render_template("___toast_ok.html", message=x.lans('dictionary_updated').capitalize())
 
         return f"""
         <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -1540,7 +1533,7 @@ def get_data_from_sheet():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 
@@ -1560,7 +1553,7 @@ def control_panel():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 @app.get("/temp")
@@ -1607,7 +1600,7 @@ def admin_posts():
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
                 return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-            toast_error = render_template("___toast_error.html", message="System under maintenance")
+            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
             if "cursor" in locals(): cursor.close()
@@ -1659,7 +1652,7 @@ def api_get_tweets_admin():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1687,7 +1680,7 @@ def confirm_block_post():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     
 #############
@@ -1712,7 +1705,7 @@ def confirm_unblock_post():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 #############
@@ -1730,7 +1723,7 @@ def confirm_post_cancel():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 
@@ -1749,13 +1742,13 @@ def block_post():
         cursor.execute(q, (post_pk,))
         tweet = cursor.fetchone()
 
-        if tweet["post_deleted_at"] != 0 : raise Exception("post is deleted", 400)
-        if tweet["post_is_blocked"] != 0 : raise Exception("post is already block", 400)
+        if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
+        if tweet["post_is_blocked"] != 0 : raise Exception(x.lans('post_already_blocked').capitalize(), 400)
 
         q="UPDATE posts SET post_is_blocked = 1 WHERE post_pk = %s"
         cursor.execute(q, (post_pk, ))
         db.commit()
-        if cursor.rowcount != 1: raise Exception("post couldnt be blocked", 400)
+        if cursor.rowcount != 1: raise Exception(f"{x.lans('post_couldnt_be').capitalize()} {x.lans('blocked')}", 400)
 
         new_input = render_template("___button_unblock_post.html", tweet=tweet)
         ic(tweet)
@@ -1764,9 +1757,9 @@ def block_post():
 
         email_post_blocked = render_template("_email_post_blocked.html", tweet=tweet, lan=x.default_language)
         # ic(email_verify_account)
-        x.send_email_post(tweet["user_email"], "A post on X has been blocked", email_post_blocked, post_image) 
+        x.send_email_post(tweet["user_email"], f"{x.lans('a_post_has_been').capitalize()} {x.lans('blocked')}", email_post_blocked, post_image) 
        
-        toast_ok = render_template("___toast_ok.html", message="Email sent successfully!")
+        toast_ok = render_template("___toast_ok.html", message=x.lans('email_sent_success').capitalize())
 
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -1782,7 +1775,7 @@ def block_post():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1834,7 +1827,7 @@ def unblock_post():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1874,7 +1867,7 @@ def admin_user():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1926,7 +1919,7 @@ def api_get_users_admin():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -1955,7 +1948,7 @@ def confirm_block_user():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     
 #############
@@ -1981,7 +1974,7 @@ def confirm_unblock_user():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 #############
@@ -1998,7 +1991,7 @@ def confirm_user_cancel():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 
@@ -2047,7 +2040,7 @@ def block_user():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()
@@ -2098,7 +2091,7 @@ def unblock_user():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
 
-        toast_error = render_template("___toast_error.html", message="System under maintenance")
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
         if "cursor" in locals(): cursor.close()

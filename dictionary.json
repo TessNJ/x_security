@@ -1,238 +1,178 @@
 {
-    "login": {
-        "english": "login",
-        "danish": "log ind",
-        "spanish": "entrar"
+    "a_post_has_been": {
+        "english": "a post on X has been",
+        "danish": "et opslag på X er blevet",
+        "spanish": "una publicación en X ha sido "
     },
-    "email": {
-        "english": "email",
-        "danish": "email",
-        "spanish": "Correo electrónico"
+    "account": {
+        "english": "account",
+        "danish": "konto",
+        "spanish": "account"
     },
-    "first_name": {
-        "english": "first name",
-        "danish": "fornavn",
-        "spanish": "nombre"
+    "account_has_been": {
+        "english": "account has been",
+        "danish": "konto er blevet",
+        "spanish": "su cuenta ha sido "
     },
-    "username": {
-        "english": "username",
-        "danish": "brugernavn",
-        "spanish": "nombre de usuario"
+    "account_plural": {
+        "english": "acount(s)",
+        "danish": "konto(er)",
+        "spanish": "cuenta(s)"
     },
-    "password": {
-        "english": "password",
-        "danish": "kodeord",
-        "spanish": "clave"
+    "add_comment": {
+        "english": "add comment",
+        "danish": "tilføj kommentar",
+        "spanish": "añadir comentario"
     },
-    "last_name": {
-        "english": "last name",
-        "danish": "efternavn",
-        "spanish": "Apellido"
+    "already_have_account": {
+        "english": "already have an account",
+        "danish": "har du allerede en konto",
+        "spanish": "¿Ya tienes una cuenta"
     },
-    "dont_have_an_account": {
-        "english": "don't have an account",
-        "danish": "har du ikke en konto",
-        "spanish": "No tienes cuenta"
+    "are_you_sure_block": {
+        "english": "are you sure you want to block",
+        "danish": "er du sikker på du vil blokere",
+        "spanish": "¿Estás segura de que quieres bloquear la"
     },
-    "home": {
-        "english": "home",
-        "danish": "hjem",
-        "spanish": "casa"
+    "attach_image": {
+        "english": "attach image. PNG and JPEG only",
+        "danish": "tilføj billede. Kun PNG og JPEG",
+        "spanish": "adjuntar imagen. Solo PNG y JPEG"
     },
-    "explore": {
-        "english": "explore",
-        "danish": "udforsk",
-        "spanish": "explorar"
+    "block": {
+        "english": "block",
+        "danish": "spær",
+        "spanish": "bloquear"
     },
-    "notifications": {
-        "english": "notifications",
-        "danish": "notifikationer",
-        "spanish": "notificaciones"
+    "blocked": {
+        "english": "blocked",
+        "danish": "spærret",
+        "spanish": "bloqueada"
     },
-    "messages": {
-        "english": "messages",
-        "danish": "beskeder",
-        "spanish": "mensajes"
+    "blocking": {
+        "english": "blocking",
+        "danish": "spærre",
+        "spanish": "bloqueando"
     },
     "bookmarks": {
         "english": "bookmarks",
         "danish": "bogmærker",
         "spanish": "marcadores"
     },
-    "jobs": {
-        "english": "jobs",
-        "danish": "jobs",
-        "spanish": "empleos"
+    "by_an_admin": {
+        "english": "by an administrator",
+        "danish": "af en administrator",
+        "spanish": "por una administradora"
     },
-    "communities": {
-        "english": "communities",
-        "danish": "fællesskaber",
-        "spanish": "communidades"
+    "cancel": {
+        "english": "cancel",
+        "danish": "annuller",
+        "spanish": "Cancelar"
     },
-    "premium": {
-        "english": "premium",
-        "danish": "premium",
-        "spanish": "la prima"
-    },
-    "profile": {
-        "english": "profile",
-        "danish": "profil",
-        "spanish": "perfil"
-    },
-    "more": {
-        "english": "more",
-        "danish": "mere",
-        "spanish": "más"
-    },
-    "logout": {
-        "english": "logout",
-        "danish": "log ud",
-        "spanish": "cerrar sesión"
-    },
-    "update_profile": {
-        "english": "update profile",
-        "danish": "opdater profil",
-        "spanish": "actualizar perfil"
+    "cannot_verify": {
+        "english": "cannot verify user",
+        "danish": "bruger kan ikke verificeres",
+        "spanish": "no se puede verificar la usuaria"
     },
     "characters": {
         "english": "characters",
         "danish": "tegn",
         "spanish": "caracteres"
     },
-    "to": {
-        "english": "to",
-        "danish": "til",
-        "spanish": "a"
+    "click_to_verify": {
+        "english": "click here to get verified",
+        "danish": "klik her for at blive verificeret",
+        "spanish": "haga clic aquí para ser verificada"
     },
-    "update_successful": {
-        "english": "profile updated successfully",
-        "danish": "profilen blev opdateret",
-        "spanish": "perfil actualizado exitosamente"
+    "comment": {
+        "english": "comment",
+        "danish": "kommenter",
+        "spanish": "comentario"
     },
-    "invalid_email": {
-        "english": "invalid email",
-        "danish": "ugyldig e-mail",
-        "spanish": "correo electrónico inválido"
+    "commenting": {
+        "english": "commenting",
+        "danish": "kommentere",
+        "spanish": "comentando"
     },
-    "invalid_password": {
-        "english": "invalid password",
-        "danish": "ugyldig pinkode",
-        "spanish": "clave inválida"
+    "comments": {
+        "english": "comments",
+        "danish": "kommentare",
+        "spanish": "comentarios"
     },
-    "invalid_credentials": {
-        "english": "invalid credentials",
-        "danish": "ugyldige loginoplysninger",
-        "spanish": "información incorrecta"
+    "communities": {
+        "english": "communities",
+        "danish": "fællesskaber",
+        "spanish": "communidades"
     },
-    "user_not_verified": {
-        "english": "user not verified. Please check your email",
-        "danish": "bruger ikke verificeret. Tjek venligst din e-mail",
-        "spanish": "usuario no verificado. Por favor, chequéa tu email"
+    "control_panel": {
+        "english": "control panel",
+        "danish": "kontrolpanel",
+        "spanish": "panel de control"
     },
-    "user_not_found": {
-        "english": "user not found",
-        "danish": "bruger ikke fundet",
-        "spanish": "usuario no encontrado"
+    "create_account": {
+        "english": "create your account",
+        "danish": "opret din konto",
+        "spanish": "crea tu cuenta"
     },
-    "email_registered": {
-        "english": "email already registered",
-        "danish": "emailen er allerede registreret",
-        "spanish": "correo electrónico ya registrado"
+    "delete": {
+        "english": "delete",
+        "danish": "slet",
+        "spanish": "borrar"
     },
-    "username_registered": {
-        "english": "username already registered",
-        "danish": "brugernavnet er allerede registreret",
-        "spanish": "nombre de usuario ya registrado"
+    "delete_account_confirme": {
+        "english": "you are about to delete your account. Are you sure?",
+        "danish": "du er ved at slette din konto. Er du sikker?",
+        "spanish": "estás a punto de eliminar tu cuenta. ¿Estás seguro"
     },
-    "system_under_maintenance": {
-        "english": "system under maintenance",
-        "danish": "system under vedligeholdelse",
-        "spanish": "sistema en mantenimiento"
+    "delete_image": {
+        "english": "delete image",
+        "danish": "slet billede",
+        "spanish": "borrar imagen"
     },
-    "twitter_maintenance": {
-        "english": "Twitter exception - Database under maintenance",
-        "danish": "Twitter undtagelse - Databasen er under vedligeholdelse",
-        "spanish": "excepción de Twitter - La base de datos está en mantenimiento"
+    "delete_post_confirm": {
+        "english": "you are about to delete your post. Are you sure?",
+        "danish": "du er ved at slette dit opslag. Er du sikker?",
+        "spanish": "estás a punto de eliminar tu publicación. ¿Estás seguro"
     },
-    "twitter_password": {
-        "english": "Twitter exception - Invalid confirm password",
-        "danish": "Twitter undtagelse - Ugyldig bekræftelse af kodeord",
-        "spanish": "excepción de Twitter - contraseña de confirmación no válida"
+    "dictionary_updated": {
+        "english": "dictionary updated",
+        "danish": "ordborgen er opdateret",
+        "spanish": "diccionario actualizado"
     },
-    "twitter_uuid4_dashes": {
-        "english": "Twitter exception - Invalid uuid4",
-        "danish": "Twitter undtagelse - Ugyldig uuid4",
-        "spanish": "excepción de Twitter - uuid4 no válido"
+    "dont_have_an_account": {
+        "english": "don't have an account",
+        "danish": "har du ikke en konto",
+        "spanish": "no tienes cuenta"
     },
-    "twitter_uuid4": {
-        "english": "Twitter exception - Invalid uuid4 without dashes",
-        "danish": "Twitter undtagelse - Ugyldig uuid4 uden bindestreg",
-        "spanish": "excepción de Twitter- uuid4 no válido sin guiones"
+    "email": {
+        "english": "email",
+        "danish": "email",
+        "spanish": "correo electrónico"
     },
-    "post": {
-        "english": "post",
-        "danish": "publicer",
-        "spanish": "publicar"
+    "email_account_is_deleted": {
+        "english": "your account has been deleted",
+        "danish": "din konto er blevet slettet",
+        "spanish": "su cuenta ha sido eliminada"
     },
-    "search": {
-        "english": "search",
-        "danish": "søg",
-        "spanish": "buscar"
+    "email_account_not_accessible": {
+        "english": "you are no longer able to access X on this account.",
+        "danish": "du har ikke længere adgang til X på denne konto",
+        "spanish": "ya no puedes acceder a X en esta cuenta."
     },
-    "following": {
-        "english": "following",
-        "danish": "følger",
-        "spanish": "siguiente"
+    "email_believe_mistake": {
+        "english": "if you believe this is a mistake, please contact the support team ",
+        "danish": "hvis du mener, at dette er en fejl, bedes du kontakte supportteamet",
+        "spanish": "si cree que esto es un error, comuníquese con el equipo de soporte."
     },
-    "forgot_password": {
-        "english": "forgotten your password",
-        "danish": "har du glemt dit kodeord",
-        "spanish": "olvidaste tu clave"
+    "email_congrats_access_acocunt": {
+        "english": "contratulations. You are now able to access X on this account.",
+        "danish": "tillykke. Du har nu adgang til X på denne konto.",
+        "spanish": "contrataciones. Ahora puedes acceder a X en esta cuenta."
     },
-    "follow": {
-        "english": "follow",
-        "danish": "følg",
-        "spanish": "seguir"
-    },
-    "unfollow": {
-        "english": "unfollow",
-        "danish": "følger",
-        "spanish": "singue"
-    },
-    "set_new_password": {
-        "english": "set new password",
-        "danish": "vælg nyt kodeord",
-        "spanish": "establecer nueva contraseña"
-    },
-    "update_password": {
-        "english": "update password",
-        "danish": "opdater adgangskode",
-        "spanish": "actualizar contraseña"
-    },
-    "password_updated": {
-        "english": "password updated",
-        "danish": "adgangskode opdateret",
-        "spanish": "contraseña actualizada"
-    },
-    "updating": {
-        "english": "updating",
-        "danish": "opdaterer",
-        "spanish": "actualizando"
-    },
-    "password_recovery": {
-        "english": "password recovery",
-        "danish": "gendannelse af adgangskode",
-        "spanish": "recuperación de contraseña"
-    },
-    "requested_password_recovery": {
-        "english": "you have recenly requested password recovery",
-        "danish": "du har for nylig anmodet om gendannelse af adgangskode",
-        "spanish": "recientemente solicitaste la recuperación de contraseña."
-    },
-    "email_to_set_password": {
-        "english": "to set a new password please",
-        "danish": "for at vælge en ny adgangskode skal du",
-        "spanish": "para establecer una nueva contraseña, por favor"
+    "email_congrats_see_post": {
+        "english": "contratulations. You are now able to see your post again",
+        "danish": "tillykke. Du kan nu se dit opslag igen.",
+        "spanish": "felicitaciones. Ya puedes volver a ver tu publicación."
     },
     "email_did_not_request": {
         "english": "if you did not make this request, you can ignore this email.",
@@ -244,24 +184,574 @@
         "danish": "følg dette link",
         "spanish": "sigue este enlace"
     },
-    "request_new_password": {
-        "english": "request a new password",
-        "danish": "anmod om ny adgangskode",
-        "spanish": "solicitar una nueva contraseña"
+    "email_got_to_x": {
+        "english": "go to X",
+        "danish": "gå til X",
+        "spanish": "ir a X"
+    },
+    "email_need_to_verify": {
+        "english": "to access X, you need to verify your account",
+        "danish": "for at få adgang til X skal du verificere din konto",
+        "spanish": "para acceder a X, necesitas verificar tu cuenta"
+    },
+    "email_post_not_accessible": {
+        "english": "you are no longer able to see or interact with your post.",
+        "danish": "du kan ikke længere se eller interagere med dit opslag.",
+        "spanish": "ya no puedes ver ni interactuar con tu publicación."
+    },
+    "email_recently_deleted_account": {
+        "english": "you have recently deleted your account.",
+        "danish": "du har for nylig slettet din konto.",
+        "spanish": "has eliminado tu cuenta recientemente."
+    },
+    "email_registered": {
+        "english": "email already registered",
+        "danish": "e-mailen er allerede registreret",
+        "spanish": "correo electrónico ya registrado"
+    },
+    "email_sent_failed": {
+        "english": "email wasnt sent",
+        "danish": "e-mailen blev ikke sendt",
+        "spanish": "el correo electrónico no fue enviado"
+    },
+    "email_sent_success": {
+        "english": "email sent successfully",
+        "danish": "e-mailen er sendt",
+        "spanish": "correo electrónico enviado exitosamente"
+    },
+    "email_to_set_password": {
+        "english": "to set a new password please",
+        "danish": "for at vælge en ny adgangskode skal du",
+        "spanish": "para establecer una nueva contraseña, por favor"
+    },
+    "email_want_to_recover_account": {
+        "english": "if you want to recover your account, please contact support",
+        "danish": "hvis du vil gendanne din konto, bedes du kontakte support",
+        "spanish": "si desea recuperar su cuenta, comuníquese con el soporte técnico."
+    },
+    "email_your_account_was": {
+        "english": "your account was",
+        "danish": "din konto blev",
+        "spanish": "tu cuenta fue"
+    },
+    "email_your_post_was": {
+        "english": "your post was ",
+        "danish": "dit opslag blev",
+        "spanish": "tu publicación fue"
+    },
+    "explore": {
+        "english": "explore",
+        "danish": "udforsk",
+        "spanish": "explorar"
+    },
+    "first_name": {
+        "english": "first name",
+        "danish": "fornavn",
+        "spanish": "nombre"
+    },
+    "follow": {
+        "english": "follow",
+        "danish": "følg",
+        "spanish": "seguir"
+    },
+    "following": {
+        "english": "following",
+        "danish": "følger",
+        "spanish": "siguiente"
+    },
+    "forgot_password": {
+        "english": "forgotten your password",
+        "danish": "har du glemt dit kodeord",
+        "spanish": "olvidaste tu clave"
+    },
+    "fresh_news": {
+        "english": "fresh news",
+        "danish": "friske nyheder",
+        "spanish": "noticias frescas"
+    },
+    "happening_now": {
+        "english": "happening now",
+        "danish": "sker nu",
+        "spanish": "sucediendo ahora"
+    },
+    "hello_admin": {
+        "english": "hello administrator",
+        "danish": "hej administrator",
+        "spanish": "hola administradora"
+    },
+    "home": {
+        "english": "home",
+        "danish": "hjem",
+        "spanish": "casa"
+    },
+    "invalid_credentials": {
+        "english": "invalid credentials",
+        "danish": "ugyldige loginoplysninger",
+        "spanish": "información incorrecta"
+    },
+    "invalid_email": {
+        "english": "invalid email",
+        "danish": "ugyldig e-mail",
+        "spanish": "correo electrónico inválido"
+    },
+    "invalid_key": {
+        "english": "invalid key",
+        "danish": "ugyldig nøgle",
+        "spanish": "clave inválida"
+    },
+    "invalid_password": {
+        "english": "invalid password",
+        "danish": "ugyldig pinkode",
+        "spanish": "clave inválida"
+    },
+    "jobs": {
+        "english": "jobs",
+        "danish": "jobs",
+        "spanish": "empleos"
+    },
+    "join_today": {
+        "english": "join today",
+        "danish": "meld dig ind idag",
+        "spanish": "únete hoy"
+    },
+    "last_name": {
+        "english": "last name",
+        "danish": "efternavn",
+        "spanish": "Apellido"
+    },
+    "link_is_invalid": {
+        "english": "link is invalid. Request a new link",
+        "danish": "linket er ugyldigt. Anmod om et ny link",
+        "spanish": "el enlace no es válido. Solicitar un nuevo enlace."
+    },
+    "loading": {
+        "english": "loading",
+        "danish": "indlæser",
+        "spanish": "cargando"
+    },
+    "log_in": {
+        "english": "log in",
+        "danish": "log ind",
+        "spanish": "acceso"
+    },
+    "log_in_to_x": {
+        "english": "log in to X",
+        "danish": "log ind på X",
+        "spanish": "inicia sesión en x"
+    },
+    "logging_in": {
+        "english": "logging in",
+        "danish": "logger ind",
+        "spanish": "iniciando sesión"
+    },
+    "login": {
+        "english": "login",
+        "danish": "log ind",
+        "spanish": "entrar"
+    },
+    "logout": {
+        "english": "logout",
+        "danish": "log ud",
+        "spanish": "cerrar sesión"
+    },
+    "messages": {
+        "english": "messages",
+        "danish": "beskeder",
+        "spanish": "mensajes"
+    },
+    "more": {
+        "english": "more",
+        "danish": "mere",
+        "spanish": "más"
+    },
+    "more_news": {
+        "english": "more news",
+        "danish": "flere nyheder",
+        "spanish": "más noticias"
+    },
+    "name": {
+        "english": "name",
+        "danish": "navn",
+        "spanish": "nombre"
+    },
+    "next": {
+        "english": "next",
+        "danish": "næste",
+        "spanish": "próxima"
+    },
+    "no_following": {
+        "english": "you are not following anyone",
+        "danish": "du følger ikke nogen",
+        "spanish": "no estás siguiendo a nadie"
+    },
+    "notifications": {
+        "english": "notifications",
+        "danish": "notifikationer",
+        "spanish": "notificaciones"
+    },
+    "password": {
+        "english": "password",
+        "danish": "kodeord",
+        "spanish": "clave"
+    },
+    "password_recovery": {
+        "english": "password recovery",
+        "danish": "gendannelse af adgangskode",
+        "spanish": "recuperación de contraseña"
     },
     "password_requested": {
         "english": "password requested",
         "danish": "adgangskode anmodet",
         "spanish": "contraseña solicitada"
     },
+    "password_reset_sent": {
+        "english": "a password reset has been sent to your email",
+        "danish": "en gendannelses kode er blevet sendt til din e-mail",
+        "spanish": "se ha enviado un restablecimiento de contraseña a su correo electrónico"
+    },
+    "password_updated": {
+        "english": "password updated",
+        "danish": "adgangskode opdateret",
+        "spanish": "contraseña actualizada"
+    },
+    "post": {
+        "english": "post",
+        "danish": "publicer",
+        "spanish": "publicar"
+    },
+    "post_already_deleted": {
+        "english": "post is already deleted",
+        "danish": "opslag er allerede blevet slettet",
+        "spanish": "la publicación ya está eliminada"
+    },
+    "post_couldnt_be": {
+        "english": "post couldnt be",
+        "danish": "opslaget kunne ikke",
+        "spanish": "la publicación no pudo ser"
+    },
+    "post_couldnt_update": {
+        "english": "post couldnt update",
+        "danish": "opslaget kunne ikke opdateres",
+        "spanish": "la publicación no se pudo actualizar"
+    },
+    "post_id": {
+        "english": "post id",
+        "danish": "opslags id",
+        "spanish": "identificación de la publicación"
+    },
+    "post_image": {
+        "english": "post image",
+        "danish": "opslagets billede",
+        "spanish": "publicar imagen"
+    },
+    "post_is_blocked": {
+        "english": "post is blocked",
+        "danish": "opslaget er blokeret",
+        "spanish": "la publicación está bloqueada"
+    },
+    "post_is_deleted": {
+        "english": "post is deleted",
+        "danish": "opslaget er slettet",
+        "spanish": "la publicación se elimina"
+    },
+    "post_isnt": {
+        "english": "post isnt",
+        "danish": "opslaget er ikke",
+        "spanish": "la publicación no es"
+    },
+    "post_manager": {
+        "english": "post manager",
+        "danish": "opslags håndtering",
+        "spanish": "gerente de correos"
+    },
+    "post_message": {
+        "english": "post message",
+        "danish": "opslagets besked",
+        "spanish": "publicar mensaje"
+    },
+    "post_must_be": {
+        "english": "post must be",
+        "danish": "opslaget skal være ",
+        "spanish": "la publicación debe ser"
+    },
+    "post_panel": {
+        "english": "post panel",
+        "danish": "opslagspanel",
+        "spanish": "panel de publicaciones"
+    },
+    "posting": {
+        "english": "posting",
+        "danish": "publicere",
+        "spanish": "publicación"
+    },
+    "premium": {
+        "english": "premium",
+        "danish": "premium",
+        "spanish": "la prima"
+    },
+    "profile": {
+        "english": "profile",
+        "danish": "profil",
+        "spanish": "perfil"
+    },
+    "profile_picture": {
+        "english": "profile picture",
+        "danish": "profil billede",
+        "spanish": "foto de perfil"
+    },
+    "request_new_password": {
+        "english": "request a new password",
+        "danish": "anmod om ny adgangskode",
+        "spanish": "solicitar una nueva contraseña"
+    },
+    "requested_password_recovery": {
+        "english": "you have recenly requested password recovery",
+        "danish": "du har for nylig anmodet om gendannelse af adgangskode",
+        "spanish": "recientemente solicitaste la recuperación de contraseña."
+    },
+    "requesting": {
+        "english": "requesting",
+        "danish": "anmoder",
+        "spanish": "solicitando"
+    },
     "requesting_password_email": {
         "english": "requesting",
         "danish": "anmoder",
         "spanish": "solicitando"
     },
-    "no_following": {
-        "english": "you are not following anyone",
-        "danish": "du følger ikke nogen",
-        "spanish": "no estás siguiendo a nadie"
+    "sad_to_see_you_go": {
+        "english": "we are sad to see you go",
+        "danish": "vi er kede af, at vi skal sige farvel",
+        "spanish": "nosotras estamos tristes de verte ir"
+    },
+    "search": {
+        "english": "search",
+        "danish": "søg",
+        "spanish": "buscar"
+    },
+    "searching": {
+        "english": "searching",
+        "danish": "søger",
+        "spanish": "búsqueda"
+    },
+    "set_new_password": {
+        "english": "set new password",
+        "danish": "vælg nyt kodeord",
+        "spanish": "establecer nueva contraseña"
+    },
+    "show_more": {
+        "english": "show more",
+        "danish": "se mere",
+        "spanish": "mostrar más"
+    },
+    "sign_up": {
+        "english": "sign up",
+        "danish": "tilmeld",
+        "spanish": "inscribirse"
+    },
+    "sign_up_to_x": {
+        "english": "sign up to X",
+        "danish": "tilmeld til dig på X",
+        "spanish": "regístrate en X"
+    },
+    "signing_up": {
+        "english": "signing up",
+        "danish": "tilmelder",
+        "spanish": "registrándose"
+    },
+    "system_under_maintenance": {
+        "english": "system under maintenance",
+        "danish": "system under vedligeholdelse",
+        "spanish": "sistema en mantenimiento"
+    },
+    "the_world_is_reading": {
+        "english": "the world is reading your post !",
+        "danish": "verden læser dit opslag!",
+        "spanish": "¡El mundo está leyendo tu publicación!"
+    },
+    "this_post_by": {
+        "english": "this post by",
+        "danish": "dette opslag fra",
+        "spanish": "esta publicación por"
+    },
+    "to": {
+        "english": "to",
+        "danish": "til",
+        "spanish": "a"
+    },
+    "twitter_maintenance": {
+        "english": "Twitter exception - Database under maintenance",
+        "danish": "Twitter undtagelse - Databasen er under vedligeholdelse",
+        "spanish": "excepción de Twitter - La base de datos está en mantenimiento"
+    },
+    "twitter_password": {
+        "english": "Twitter exception - Invalid confirm password",
+        "danish": "Twitter undtagelse - Ugyldig bekræftelse af kodeord",
+        "spanish": "excepción de Twitter - contraseña de confirmación no válida"
+    },
+    "twitter_uuid4": {
+        "english": "Twitter exception - Invalid uuid4 without dashes",
+        "danish": "Twitter undtagelse - Ugyldig uuid4 uden bindestreg",
+        "spanish": "excepción de Twitter- uuid4 no válido sin guiones"
+    },
+    "twitter_uuid4_dashes": {
+        "english": "Twitter exception - Invalid uuid4",
+        "danish": "Twitter undtagelse - Ugyldig uuid4",
+        "spanish": "excepción de Twitter - uuid4 no válido"
+    },
+    "unblock": {
+        "english": "unblock",
+        "danish": "ophæve blokeringen",
+        "spanish": "desatascar"
+    },
+    "unblocked": {
+        "english": "unblocked",
+        "danish": "afblokeret",
+        "spanish": "desbloqueada"
+    },
+    "unblocking": {
+        "english": "unblocking",
+        "danish": "ophæver blokeringen",
+        "spanish": "desbloquear"
+    },
+    "unfollow": {
+        "english": "unfollow",
+        "danish": "følger",
+        "spanish": "singue"
+    },
+    "update_dictionary": {
+        "english": "update dictionary",
+        "danish": "opdater ordbogen",
+        "spanish": "actualizar diccionario"
+    },
+    "update_password": {
+        "english": "update password",
+        "danish": "opdater adgangskode",
+        "spanish": "actualizar contraseña"
+    },
+    "update_profile": {
+        "english": "update profile",
+        "danish": "opdater profil",
+        "spanish": "actualizar perfil"
+    },
+    "updated_password": {
+        "english": "your password has been updated",
+        "danish": "dit kodeord er blevet opdateret",
+        "spanish": "dicho código es blevet actualizado"
+    },
+    "update_successful": {
+        "english": "profile updated successfully",
+        "danish": "profilen blev opdateret",
+        "spanish": "perfil actualizado exitosamente"
+    },
+    "updating": {
+        "english": "updating",
+        "danish": "opdaterer",
+        "spanish": "actualizando"
+    },
+    "updating_profile": {
+        "english": "updating profile",
+        "danish": "opdaterer profil",
+        "spanish": "actualizando perfil"
+    },
+    "user_couldnt_be": {
+        "english": "user couldnt be",
+        "danish": "brugeren kunne ikke blive",
+        "spanish": "la usuario no podría ser"
+    },
+    "user_deactivated": {
+        "english": "user deactivated. Contact support",
+        "danish": "brugeren er deaktiveret. Kontakt brugersupport",
+        "spanish": "usuario desactivado. Contactar con soporte."
+    },
+    "user_is_already": {
+        "english": "user is already",
+        "danish": "brugeren er allerede",
+        "spanish": "la usuaria ya está"
+    },
+    "user_is_blocked": {
+        "english": "user is blocked",
+        "danish": "brugeren er blokeret",
+        "spanish": "la usuario está bloqueada"
+    },
+    "user_is_deleted": {
+        "english": "user is deleted",
+        "danish": "brugeren er slettet",
+        "spanish": "la usuario se elimina"
+    },
+    "user_manager": {
+        "english": "user manager",
+        "danish": "bruger håndtering",
+        "spanish": "administrador de usuarios"
+    },
+    "user_not_found": {
+        "english": "user not found",
+        "danish": "bruger ikke fundet",
+        "spanish": "usuario no encontrado"
+    },
+    "user_not_verified": {
+        "english": "user not verified. Please check your email",
+        "danish": "bruger ikke verificeret. Tjek venligst din e-mail",
+        "spanish": "usuario no verificado. Por favor, chequéa tu email"
+    },
+    "user_panel": {
+        "english": "user panel",
+        "danish": "brugerpanel",
+        "spanish": "panel de usuario"
+    },
+    "user_will_be_notified": {
+        "english": "they will be notified via email",
+        "danish": "de vil blive underrettet via e-mail",
+        "spanish": "serán notificados vía correo electrónico"
+    },
+    "username": {
+        "english": "username",
+        "danish": "brugernavn",
+        "spanish": "nombre de usuario"
+    },
+    "username_registered": {
+        "english": "username already registered",
+        "danish": "brugernavnet er allerede registreret",
+        "spanish": "nombre de usuario ya registrado"
+    },
+    "verify_your_account": {
+        "english": "verify your account",
+        "danish": "verificer din konto",
+        "spanish": "verifica tu cuenta"
+    },
+    "views": {
+        "english": "views",
+        "danish": "visninger",
+        "spanish": "vistas"
+    },
+    "welcome_to_x": {
+        "english": "welcome to X",
+        "danish": "velkommen til X",
+        "spanish": "bienvenido a X"
+    },
+    "what_is_happening": {
+        "english": "what's happening now",
+        "danish": "hvad sker der nu",
+        "spanish": "¿Qué está pasando ahora"
+    },
+    "what_is_new": {
+        "english": "what is new",
+        "danish": "hvad er nyt",
+        "spanish": "¿Qué hay de nuevo"
+    },
+    "who_to_follow": {
+        "english": "who to follow",
+        "danish": "hvem man kan følge",
+        "spanish": "who to follow"
+    },
+    "you_are_following": {
+        "english": "you are following",
+        "danish": "du følger",
+        "spanish": "estas siguiendo"
+    },
+    "post_already_blocked": {
+        "english": "post is already deleted",
+        "danish": "opslaget er allerede blokeret",
+        "spanish": "la publicación ya está eliminada"
     }
 }

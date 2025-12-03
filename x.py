@@ -2,7 +2,6 @@ from flask import Flask, request, make_response, render_template, session, redir
 import mysql.connector
 import re
 import time
-# import dictionary
 import json
 import os
 from dotenv import load_dotenv
@@ -50,11 +49,6 @@ def lans(key):
 ##############################
 def db():
     try:
-        # host = "fullweb.mysql.eu.pythonanywhere-services.com" if python_domain else "mariadb"
-        # user = "TereseNJ" if python_domain else "root"
-        # password = "MyPasswordForYou" if python_domain else "password"
-        # database = "TereseNJ$twitter" if python_domain else "x"
-
         db = mysql.connector.connect(
             host = app.config['DB_HOST'],
             user = app.config['DB_USER'],
@@ -82,7 +76,7 @@ def no_cache(view):
 REGEX_EMAIL = "^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$"
 def validate_user_email():
     user_email = request.form.get("user_email", "").strip()
-    if not re.match(REGEX_EMAIL, user_email): raise Exception(lans('invalid_email'), 400)
+    if not re.match(REGEX_EMAIL, user_email): raise Exception(lans('invalid_email').capitalize(), 400)
     return user_email
 
 ##############################
@@ -91,7 +85,7 @@ USER_USERNAME_MAX = 20
 REGEX_USER_USERNAME = f"^.{{{USER_USERNAME_MIN},{USER_USERNAME_MAX}}}$"
 def validate_user_username():
     user_username = request.form.get("user_username", "").strip()
-    error = f"{lans('username')}: {USER_USERNAME_MIN} {lans('to')} {USER_USERNAME_MAX} {lans('characters')}"
+    error = f"{lans('username').capitalize()}: {USER_USERNAME_MIN} {lans('to')} {USER_USERNAME_MAX} {lans('characters')}"
     if len(user_username) < USER_USERNAME_MIN: raise Exception(error, 400)
     if len(user_username) > USER_USERNAME_MAX: raise Exception(error, 400)
     return user_username
@@ -102,7 +96,7 @@ USER_FIRST_NAME_MAX = 20
 REGEX_USER_FIRST_NAME = f"^.{{{USER_FIRST_NAME_MIN},{USER_FIRST_NAME_MAX}}}$"
 def validate_user_first_name():
     user_first_name = request.form.get("user_first_name", "").strip()
-    error = f"{lans('first_name')}: {USER_FIRST_NAME_MIN} {lans('to')} {USER_FIRST_NAME_MAX} {lans('characters')}"
+    error = f"{lans('first_name').capitalize()}: {USER_FIRST_NAME_MIN} {lans('to')} {USER_FIRST_NAME_MAX} {lans('characters')}"
     if not re.match(REGEX_USER_FIRST_NAME, user_first_name): raise Exception(error, 400)
     return user_first_name
 
@@ -113,13 +107,13 @@ USER_PASSWORD_MAX = 50
 REGEX_USER_PASSWORD = f"^.{{{USER_PASSWORD_MIN},{USER_PASSWORD_MAX}}}$"
 def validate_user_password():
     user_password = request.form.get("user_password", "").strip()
-    if not re.match(REGEX_USER_PASSWORD, user_password): raise Exception(lans('invalid_password'), 400)
+    if not re.match(REGEX_USER_PASSWORD, user_password): raise Exception(lans('invalid_password').capitalize(), 400)
     return user_password
 
 ##############################
 def validate_user_password_confirm():
     user_password = request.form.get("user_password_confirm", "").strip()
-    if not re.match(REGEX_USER_PASSWORD, user_password): raise Exception(lans('twitter_password'), 400)
+    if not re.match(REGEX_USER_PASSWORD, user_password): raise Exception(lans('twitter_password').capitalize(), 400)
     return user_password
 
 ##############################
@@ -144,7 +138,7 @@ POST_MIN_LEN = 2
 POST_MAX_LEN = 250
 REGEX_POST = f"^.{{{POST_MIN_LEN},{POST_MAX_LEN}}}$"
 def validate_post(post = ""):
-    error = f"""post must be {POST_MIN_LEN} to {POST_MAX_LEN} characters"""
+    error = f"{lans('post_must_be').capitalize()}: {POST_MIN_LEN} {lans('to')} {POST_MAX_LEN} {lans('characters')}"
     post = post.strip()
     if not re.match(REGEX_POST, post): raise Exception(error, 400)
     return post
@@ -177,15 +171,13 @@ def send_email(to_email, subject, template):
             server.starttls()  # Upgrade the connection to secure
             server.login(sender_email, password)
             server.sendmail(sender_email, receiver_email, message.as_string())
-        ic("Email sent successfully!")
 
-        return "email sent"
+        return lans('email_sent_success').capitalize()
 
     except Exception as ex:
         ic(ex)
-        raise Exception("Email wasnt sent", 400)
-    finally:
-        pass
+        raise Exception(lans('email_sent_failed').capitalize(), 400)
+
 
 
 ##############################
@@ -225,14 +217,13 @@ def send_email_post(to_email, subject, template, post_image):
             server.starttls() 
             server.login(sender_email, password)
             server.sendmail(sender_email, receiver_email, message.as_string())
-        ic("Email sent successfully!")
 
-        return "email sent"
+        return lans('email_sent_success').capitalize()
 
     except Exception as ex:
         ic(ex)
 
-        raise Exception("Email wasnt sent", 400)
+        raise Exception(lans('email_sent_failed').capitalize(), 400)
 
 ##############################
 def validate_user_logged():
@@ -253,15 +244,6 @@ def validate_admin_logged():
     if logged["email"] != app.config['ADMIN_EMAIL'] : False
     if logged["password"] != app.config['ADMIN_PASSWORD'] : False
     return True
-    
-    # if not logged: return redirect(url_for("view_index"))
-    # if logged["email"] != app.config['ADMIN_EMAIL'] : 
-    #     session.clear()
-    #     return redirect(url_for("view_index"))
-    # if logged["password"] != app.config['ADMIN_PASSWORD'] : 
-    #     session.clear()
-    #     return redirect(url_for("view_index"))
-    # return "ok"
 
 #############################
 MINUTE_SECOND = 60
