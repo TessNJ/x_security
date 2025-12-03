@@ -1,1 +1,7 @@
 .env
+Dockerfile
+docker-compose.yml
+send_mail.py
+x.sql
+x(1).sql
+dictionary.py

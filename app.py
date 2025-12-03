@@ -265,7 +265,7 @@ def request_password(lan="english"):
                 raise Exception(x.lans('user_not_verified'), 400)
             
             if user["user_deleted_at"] != 0 :
-                raise Exception("user deleted", 400)
+                raise Exception("user deactivated. Contact support", 400)
             
             user_password_reset = uuid.uuid4().hex
 
@@ -701,7 +701,7 @@ def api_create_post():
     try:
         user = session.get("user", "")
         lan = session["user"]["user_language"]
-        if not user: return "invalid user"
+        # if not user: return "invalid user"
         user_pk = user["user_pk"]
         post = x.validate_post(request.form.get("post", ""))
 
