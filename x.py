@@ -2,7 +2,7 @@ from flask import Flask, request, make_response, render_template, session, redir
 import mysql.connector
 import re
 import time
-import dictionary
+# import dictionary
 import json
 import os
 from dotenv import load_dotenv

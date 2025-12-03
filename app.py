@@ -6,7 +6,7 @@ import x
 import time
 import uuid
 import os
-import dictionary
+# import dictionary
 import requests
 import io
 import csv
@@ -56,7 +56,7 @@ def view_index():
 @app.context_processor
 def global_variables():
     return dict (
-        dictionary = dictionary,
+        # dictionary = dictionary,
         x = x
     )
 
