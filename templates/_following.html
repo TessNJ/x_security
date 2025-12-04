@@ -4,7 +4,7 @@
 
 <section>
     {% if user_all_following|length > 0 : %}
-        <p>You are following {{user_all_following|length}} acount(s)</p>
+        <p>{{x.lans('you_are_following').capitalize()}} {{user_all_following|length}} {{x.lans('account_plural')}}</p>
         {% for suggestion in user_all_following %}
             {% include "___following_user.html"%}
         {% endfor %}
