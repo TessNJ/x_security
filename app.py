@@ -68,7 +68,7 @@ def login(lan = "english"):
         session["message"] = ""
 
         if session.get("user", ""): return redirect(url_for("home"))
-        return render_template("login.html", lan=lan, message=message)
+        return render_template("login.html", lan=x.default_language, message=message)
 
     if request.method == "POST":
         try:
@@ -135,7 +135,7 @@ def signup(lan = "english"):
     x.default_language = lan
 
     if request.method == "GET":
-        return render_template("signup.html", x=x, lan=lan)
+        return render_template("signup.html", x=x, lan=x.default_language)
 
     if request.method == "POST":
         try:
@@ -166,7 +166,7 @@ def signup(lan = "english"):
             db.commit()
 
             # send verification email
-            email_verify_account = render_template("_email_verify_account.html", user_verification_key=user_verification_key, lan=lan)
+            email_verify_account = render_template("_email_verify_account.html", user_verification_key=user_verification_key, lan=x.default_language)
             x.send_email(user_email, x.lans("verify_your_account").capitalize(), email_verify_account)
 
             return f"""<mixhtml mix-redirect="{ url_for('login') }"></mixhtml>""", 400
@@ -305,7 +305,7 @@ def change_password(lan = "english"):
 
             if not user: raise Exception(x.lans('link_is_invalid').capitalize(), 400)
 
-            return render_template("change_password.html", lan=lan, x=x, user_password_reset=user_password_reset)
+            return render_template("change_password.html", lan=x.default_language, x=x, user_password_reset=user_password_reset)
         except Exception as ex:
             ic(ex)
             if "db" in locals(): db.rollback()
@@ -1661,7 +1661,6 @@ def confirm_unblock_post():
 @x.no_cache
 def confirm_post_cancel():
     try: 
-        post_pk = request.args.get("key", "")
         return f"""
         <browser mix-update="#block_confirm"></browser>
         """
