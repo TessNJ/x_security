@@ -1,29 +1,29 @@
 <h1>
-    {{x.lans('profile')}}
+    {{x.lans('profile').capitalize()}}
 </h1>
 
 <div>
     <img id="user_avatar"
         src="{{ url_for('static', filename='uploads/'~(session['user_avatar_path'] if session['user_avatar_path'] else 'default.jpg')) }}"
-        class="w-8 h-8 rounded-full" alt="Profile Picture">
+        class="w-8 h-8 rounded-full" alt="{{x.lans('profile_picture').capitalize()}}">
 </div>
 <form class="x-dialog__form" action="{{ url_for('api_update_profile') }}" mix-post autocomplete="off">
     <div>
         <label for="user_avatar_path">
-            <span>Profile picture</span>
+            <span> {{x.lans('profile').capitalize()}}</span>
         </label>
         <input name="user_avatar_path" id="user_avatar_path" type="file" accept="image/*" onchange="show_preview()">
     </div>
     <div>
         <label for="user_email">
-            <span>{{x.lans('email')}}</span>
+            <span>{{x.lans('email').capitalize()}}</span>
         </label>
         <input name="user_email" id="user_email" type="text" mix-check="{{ x.REGEX_EMAIL }}"
             value="{{ user.user_email }}">
     </div>
     <div>
         <label for="user_username">
-            <span>{{x.lans('username')}}</span> - {{ x.USER_USERNAME_MIN }} {{x.lans('to')}} {{ x.USER_USERNAME_MAX }}
+            <span>{{x.lans('username').capitalize()}}</span> - {{ x.USER_USERNAME_MIN }} {{x.lans('to')}} {{ x.USER_USERNAME_MAX }}
             {{x.lans('characters')}}
         </label>
         <input name="user_username" id="user_username" type="text" mix-check="{{ x.REGEX_USER_USERNAME }}"
@@ -31,18 +31,18 @@
     </div>
     <div>
         <label for="user_first_name">
-            <span>{{x.lans('first_name')}}</span> - {{ x.USER_FIRST_NAME_MIN }} {{x.lans('to')}} {{
+            <span>{{x.lans('first_name').capitalize()}}</span> - {{ x.USER_FIRST_NAME_MIN }} {{x.lans('to')}} {{
             x.USER_FIRST_NAME_MAX }} {{x.lans('characters')}}
         </label>
         <input name="user_first_name" id="user_first_name" type="text" mix-check="{{ x.REGEX_USER_USERNAME }}"
             value="{{ user.user_first_name }}">
     </div>
-    <button class="x-dialog__btn" mix-default="Update profile" mix-await="Updating profile ...">
-        {{x.lans('update_profile')}}
+    <button class="x-dialog__btn" mix-default="{{x.lans('update_profile').capitalize()}}" mix-await="{{x.lans('updating_profile').capitalize()}} ...">
+        {{x.lans('update_profile').capitalize()}}
     </button>
 </form>
 
-<a href="{{url_for('confirm_delete')}}" mix-get>Delete</a>
+<a href="{{url_for('confirm_delete')}}" mix-get>{{x.lans('delte').capitalize()}}</a>
 <div id="confirmDelete"></div>
 
 

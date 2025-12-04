@@ -13,7 +13,7 @@
     <script src="https://unpkg.com/mojocss"></script>
 
     <title>
-        Fresh news        
+        {{x.lans("fresh_news").capitalize()}}           
     </title>
 </head>
 <body>
@@ -21,12 +21,13 @@
     
     
     <header class="px-4">
-        <h1>Hello administrator</h1>
-        
+        <h1>X | {{x.lans("control_panel").capitalize()}}</h1>
+        <h2>{{x.lans("hello_admin").capitalize()}}</h2>
+
         <nav>
-            <a href="/control_panel/users">User panel</a>
-            <a href="/control_panel/posts">Post panel</a>
-            <a href="{{url_for('get_data_from_sheet')}}" mix-get>Update dictionary</a>
+            <a href="/control_panel/users">{{x.lans("user_panel").capitalize()}}</a>
+            <a href="/control_panel/posts">{{x.lans("post_panel").capitalize()}}</a>
+            <a href="{{url_for('get_data_from_sheet')}}" mix-get>{{x.lans("update_dictionary").capitalize()}}</a>
         </nav>
         
         <a href="{{ url_for('logout') }}">{{ x.lans('logout').capitalize() }}</a>

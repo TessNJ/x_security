@@ -1,12 +1,12 @@
 <form id="post_container" action="{{ url_for('api_create_post') }}" mix-post class="d-flex flex-col w-full ml-2">
-    <textarea name="post" placeholder="What is new ?" 
+    <textarea name="post" placeholder="{{x.lans('what_is_new').capitalize()}}" 
     class="w-full outline-1 outline-s-solid outline-c-gray:+50 pa-2"></textarea>
     <label for="post_image_attach">
-        <span>Attach image. PNG and JPEG only</span>
+        <span>{{x.lans('attach_image').capitalize()}}</span>
     </label>
     <input name="post_image_attach" id="post_image_attach" type="file" accept="image/png, image/jpeg">
-    <button mix-default="Post" mix-await="Posting ..." 
+    <button mix-default="{{x.lans('post').capitalize()}}" mix-await="{{x.lans('posting').capitalize()}} ..." 
     class="w-auto ml-auto mt-2 bg-c-black text-c-white py-2 px-12 rounded-xl">
-        {{x.lans('post')}}
+        {{x.lans('post').capitalize()}}
     </button>
 </form>

@@ -1,9 +1,9 @@
 <h1>
-    Welcome to X
+    {{x.lans('welcome_to_x').capitalize()}}
 </h1>
 <h2>
-    To access X, you need to verify your account
+    {{x.lans('email_need_to_verify').capitalize()}}
 </h2>
 <p>
-    <a href="http://127.0.0.1/verify-account?key={{ user_verification_key }}&lan={{lan}}">Click here to get verified</a>
+    <a href="http://127.0.0.1/verify-account?key={{ user_verification_key }}&lan={{lan}}">{{x.lans('click_tp_verify').capitalize()}}</a>
 </p>

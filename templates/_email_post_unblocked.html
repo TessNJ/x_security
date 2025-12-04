@@ -1,13 +1,13 @@
-<h1>Post unblocked</h1>
-<h2>Your post was unblocked by an administrator</h2>
-<p>Contratulations. You are now able to see your post again</p>
+<h1>{{x.lans('post').capitalize()}} {{x.lans('unblocked')}}</h1>
+<h2>{{x.lans('email_your_post_was').capitalize()}} {{x.lans('unblocked')}} {{x.lans('by_an_admin')}}</h2>
+<p>{{x.lans('email_congrats_see_post').capitalize()}}</p>
 
-<p>Post message: {{tweet.post_message}}</p>
+<p>{{x.lans('post_message').capitalize()}}: {{tweet.post_message}}</p>
 {% if tweet.post_image_path: %}
-<p>Post image:</p>
-<img src="cid:post_image" alt="Post image" width="300">
+<p>{{x.lans('poat_image').capitalize()}}:</p>
+<img src="cid:post_image" alt="{{x.lans('post_image').capitalize()}}" width="300">
 {% endif %}
 
 <p>
-    <a href="http://127.0.0.1/login">Go to X</a>
+    <a href="http://127.0.0.1/login">{{x.lans('email_go_to_x').capitalize()}}</a>
 </p>

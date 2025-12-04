@@ -1,6 +1,6 @@
 <article class="comment" id="post_full_{{comment.post_pk}}">
     <img src="{{ url_for('static', filename='uploads/'~(comment.user_avatar_path if comment.user_avatar_path else 'default.jpg')) }}"
-        alt="Profile Picture" class="w-8 h-8 rounded-full">
+        alt="{{x.lans('profile_picture').capitalize()}}" class="w-8 h-8 rounded-full">
     <div class="post-content">
         <div class="post-header">
             <span class="name">

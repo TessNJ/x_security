@@ -1,7 +1,7 @@
 <article class="post" id="post_full_{{tweet.post_pk}}" mix-fade-in="5000">
     <div>
         <img src="{{ url_for('static', filename='uploads/'~(tweet.user_avatar_path if tweet.user_avatar_path else 'default.jpg')) }}"
-            alt="Profile Picture" class="w-8 h-8 rounded-full">
+            alt="{{x.lans('profile_picture').capitalize()}}" class="w-8 h-8 rounded-full">
         <div class="post-content">
             <div class="post-header">
                 <span class="name">

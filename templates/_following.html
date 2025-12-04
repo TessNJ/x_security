@@ -1,5 +1,5 @@
 <h1>
-    {{x.following}}
+    {{x.lans('following').capitalize()}}
 </h1>
 
 <section>
@@ -9,6 +9,6 @@
             {% include "___following_user.html"%}
         {% endfor %}
     {%else%}
-        <p>{{x.no_following}}</p>
+        <p>{{x.lans('no_following').capitalize()}}</p>
     {% endif %}
 </section>

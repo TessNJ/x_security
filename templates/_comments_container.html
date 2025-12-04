@@ -8,6 +8,6 @@
     
     {%else%}
 
-    <p id="no_comments_{{tweet.post_pk}}">No comments on post</p>
+    <p id="no_comments_{{tweet.post_pk}}">{{x.lans('no_comments').capitalize()}}</p>
     {%endif%}
 </div>

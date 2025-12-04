@@ -1,8 +1,5 @@
-<h1>
-    Your user has been deleted
-</h1>
-<h2>
-    We are sad to see you go
-</h2>
-<p>You have recently deleted your account. If you want to recover your account, please contact support</p>
-
+<h1>{{x.lans('email_account_is_deleted').capitalize()}}</h1>
+<h2>{{x.lans('sad_to_see_you_go').capitalize()}}</h2>
+<p>
+    {{x.lans('email_recently_deleted_account').capitalize()}}. {{x.lans('email_want_to_recover_account').capitalize()}}
+</p>

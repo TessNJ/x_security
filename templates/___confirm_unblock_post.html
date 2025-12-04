@@ -1,11 +1,11 @@
 <div class="block_post" >
     <p>
-        Are you sure you want to unblock this post by @{{tweet.user_username}}?
+        {{x.lans('are_you_sure_unblock').capitalize()}} {{x.lans('this_post_by')}} @{{tweet.user_username}}?
     </p>
-    <p>They will be notified via email</p>
+    <p>{{x.lans('user_will_be_notified').capitalize()}}</p>
     <div>
-        <a mix-get href="/confirm_post_cancel?key={{tweet.post_pk}}">Cancel</a>
-        <a mix-post href="/api-unblock-post?key={{tweet.post_pk}}&username={{tweet.user_username}}"mix-default="Unblock" 
-            mix-await="Unblocking...">Unblock</a>
+        <a mix-get href="/confirm_post_cancel?key={{tweet.post_pk}}">{{x.lans('cancel').capitalize()}}</a>
+        <a mix-post href="/api-unblock-post?key={{tweet.post_pk}}&username={{tweet.user_username}}"mix-default="{{x.lans('unblock').capitalize()}}" 
+            mix-await="{{x.lans('unblocking').capitalize()}}...">{{x.lans('unblock').capitalize()}}</a>
     </div>
 </div>

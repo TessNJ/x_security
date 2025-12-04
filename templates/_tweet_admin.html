@@ -4,7 +4,7 @@
         <div>
 
             <img src="{{ url_for('static', filename='uploads/'~(tweet.user_avatar_path if tweet.user_avatar_path else 'default.jpg')) }}"
-                alt="Profile Picture" class="w-8 h-8 rounded-full">
+                alt="{{x.lans('profile_picture').capitalize()}}" class="w-8 h-8 rounded-full">
             <div class="post-content">
                 <div class="post-header">
                     <span class="name">
@@ -18,7 +18,7 @@
                     {{ tweet.post_message }}
                 </p>
                 {% if tweet.post_image_path: %}
-                <img src="{{ url_for('static', filename='images/' ~ tweet.post_image_path) }}" alt="Post image"
+                <img src="{{ url_for('static', filename='images/' ~ tweet.post_image_path) }}" alt="{{x.lans('post_image').capitalize()}}"
                     class="w-80">
                 {% endif %}
 
@@ -33,13 +33,13 @@
     </article>
     <div class="admin-control">
         {%if tweet.post_deleted_at != 0 %}
-        <p>Post is deleted</p>
+        <p>{{x.lans('post_is_deleted').capitalize()}}</p>
         {%endif%}
         {%if tweet.user_deleted_at != 0 %}
-        <p>User is deleted</p>
+        <p>{{x.lans('user_is_deleted').capitalize()}}</p>
         {%endif%}
         {%if tweet.user_is_blocked != 0%}
-        <p>User is blocked </p>
+        <p>{{x.lans('user_is_blocked').capitalize()}}</p>
         {%endif%}
 
         {%if tweet.post_deleted_at == 0 and tweet.user_deleted_at == 0 and tweet.user_is_blocked == 0%}

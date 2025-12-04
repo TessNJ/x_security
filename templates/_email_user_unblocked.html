@@ -1,7 +1,9 @@
-<h1>Account unblocked</h1>
-<h2>Your account was unblocked by an administrator</h2>
-<p>Contratulations. You are now able to access X on this account.</p>
-
+<h1>{{x.lans('account_has_been').capitalize()}} {{x.lans('unblocked')}}</h1>
+<h2>{{x.lans('email_your_account_was').capitalize()}} {{x.lans('unblocked')}} {{x.lans('by_an_admin')}}</h2>
 <p>
-    <a href="http://127.0.0.1/login">Go to X</a>
+    {{x.lans('email_congrats_access_acocunt').capitalize()}}.
 </p>
+<p>
+    <a href="http://127.0.0.1/login">{{x.lans('email_go_to_x').capitalize()}}</a>
+</p>
+

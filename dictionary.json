@@ -29,6 +29,11 @@
         "danish": "har du allerede en konto",
         "spanish": "¿Ya tienes una cuenta"
     },
+    "are_you_sure_unblock": {
+        "english": "are you sure you want to unblock",
+        "danish": "er du sikker på du vil fjerne blokeringen",
+        "spanish": "¿Estás seguro de que deseas desbloquear"
+    },
     "are_you_sure_block": {
         "english": "are you sure you want to block",
         "danish": "er du sikker på du vil blokere",
@@ -119,7 +124,7 @@
         "danish": "slet",
         "spanish": "borrar"
     },
-    "delete_account_confirme": {
+    "delete_account_confirm": {
         "english": "you are about to delete your account. Are you sure?",
         "danish": "du er ved at slette din konto. Er du sikker?",
         "spanish": "estás a punto de eliminar tu cuenta. ¿Estás seguro"
@@ -155,9 +160,9 @@
         "spanish": "su cuenta ha sido eliminada"
     },
     "email_account_not_accessible": {
-        "english": "you are no longer able to access X on this account.",
+        "english": "you are no longer able to access X on this account",
         "danish": "du har ikke længere adgang til X på denne konto",
-        "spanish": "ya no puedes acceder a X en esta cuenta."
+        "spanish": "ya no puedes acceder a X en esta cuenta"
     },
     "email_believe_mistake": {
         "english": "if you believe this is a mistake, please contact the support team ",
@@ -788,5 +793,10 @@
         "english": "you cannot follow yourself",
         "danish": "du kan ikke følge digselv",
         "spanish": "no puedes seguirte a ti mismo"
+    },
+    "no_comments": {
+        "english": "the post has no comments",
+        "danish": "opslaget har ikke nogen kommentarer",
+        "spanish": "la publicación no tiene comentarios"
     }
 }

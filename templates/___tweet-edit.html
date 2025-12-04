@@ -1,33 +1,33 @@
 
 <form id="post_{{tweet.post_pk}}" action="/api-update-post?key={{tweet.post_pk}}" value=imgValue name="{{tweet.post_pk}}" mix-post class="d-flex flex-col w-full ml-2">
-    <textarea name="post" placeholder="What is new ?" 
+    <textarea name="post" placeholder="{{x.lans('what_is_new').capitalize()}}" 
     class="w-full outline-1 outline-s-solid outline-c-gray:+50 pa-2">{{tweet.post_message}}</textarea>
 
     {% if tweet.post_image_path %}
     <img id="image_{{tweet.post_pk}}"
     src="{{ url_for('static', filename='images/'~tweet.post_image_path ) }}"
-    class="w-80" alt="Profile Picture">
+    class="w-80" alt="{{x.lans('profile_picture').capitalize()}}">
     {% else %}
     <img id="image_{{tweet.post_pk}}"
     src="{{ url_for('static', filename='images/default.jpg' ) }}"
-    class="w-80" alt="Profile Picture" style="display: none;" class="hide">
+    class="w-80" alt="{{x.lans('profile_picture').capitalize()}}" style="display: none;" class="hide">
     {% endif %}
 
     <input type="hidden" id="hidden_{{tweet.post_pk}}" name="hidden_{{tweet.post_pk}}" value="originalIMG">
 
     <label for="post_image_{{tweet.post_pk}}">
-        <span>Attach image. PNG and JPEG only</span>
+        <span>{{x.lans('attach_image').capitalize()}}</span>
     </label>
     <input name="post_image_{{tweet.post_pk}}" id="post_image_{{tweet.post_pk}}" type="file" accept="image/png, image/jpeg" onchange="show_post_preview()">
-    <button type="button" onclick="removeImage()" id="button_{{tweet.post_pk}}">delete image</button>
+    <button type="button" onclick="removeImage()" id="button_{{tweet.post_pk}}">{{x.lans('delete_image').capitalize()}}</button>
 
     <button href="/api-cancel-post?key={{tweet.post_pk}}" mix-get 
     class="w-auto ml-auto mt-2 bg-c-black text-c-white py-2 px-12 rounded-xl" type="button">
-        cancel
+        {{x.lans('cancel').capitalize()}}
     </button>   
-    <button mix-default="Post" mix-await="Posting ..." 
+    <button mix-default="{{x.lans('post').capitalize()}}" mix-await="{{x.lans('posting').capitalize()}} ..." 
     class="w-auto ml-auto mt-2 bg-c-black text-c-white py-2 px-12 rounded-xl" type="submit">
-        {{x.lans('post')}}
+        {{x.lans('post').capitalize()}}
     </button>   
 </form>
 

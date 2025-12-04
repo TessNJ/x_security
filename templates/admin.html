@@ -28,12 +28,12 @@
       </div>
 
 
-        <h2 id="adminTitle">Log in to X</h2>
+        <h2 id="adminTitle">{{x.lans('log_in_to_x').capitalize()}}</h2>
         <form action="/admin/{{ lan }}" mix-post class="x-dialog__form" autocomplete="off">
-            <input name="user_email" type="text" placeholder="{{x.lans('email')}}" mix-check="{{ x.REGEX_EMAIL }}">
-            <input name="user_password" type="password" placeholder="{{x.lans('password')}}">
-            <button class="x-dialog__btn" mix-default="login" mix-await="Logging in ...">
-                {{x.lans("login")}}
+            <input name="user_email" type="text" placeholder="{{x.lans('email').capitalize()}}" mix-check="{{ x.REGEX_EMAIL }}">
+            <input name="user_password" type="password" placeholder="{{x.lans('password').capitalize()}}">
+            <button class="x-dialog__btn" mix-default="{{x.lans('login').capitalize()}}" mix-await="{{x.lans('logging_in').capitalize()}} ...">
+                {{x.lans('login').capitalize()}}
             </button>
         </form>
 
