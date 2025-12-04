@@ -419,6 +419,11 @@
         "danish": "publicer",
         "spanish": "publicar"
     },
+    "post_already_blocked": {
+        "english": "post is already deleted",
+        "danish": "opslaget er allerede blokeret",
+        "spanish": "la publicación ya está eliminada"
+    },
     "post_already_deleted": {
         "english": "post is already deleted",
         "danish": "opslag er allerede blevet slettet",
@@ -634,15 +639,15 @@
         "danish": "opdater profil",
         "spanish": "actualizar perfil"
     },
-    "updated_password": {
-        "english": "your password has been updated",
-        "danish": "dit kodeord er blevet opdateret",
-        "spanish": "dicho código es blevet actualizado"
-    },
     "update_successful": {
         "english": "profile updated successfully",
         "danish": "profilen blev opdateret",
         "spanish": "perfil actualizado exitosamente"
+    },
+    "updated_password": {
+        "english": "your password has been updated",
+        "danish": "dit kodeord er blevet opdateret",
+        "spanish": "dicho código es blevet actualizado"
     },
     "updating": {
         "english": "updating",
@@ -678,6 +683,11 @@
         "english": "user is deleted",
         "danish": "brugeren er slettet",
         "spanish": "la usuario se elimina"
+    },
+    "user_isnt": {
+        "english": "user isnt",
+        "danish": "brugeren er ikke",
+        "spanish": "la usuario no está"
     },
     "user_manager": {
         "english": "user manager",
@@ -749,9 +759,34 @@
         "danish": "du følger",
         "spanish": "estas siguiendo"
     },
-    "post_already_blocked": {
-        "english": "post is already deleted",
-        "danish": "opslaget er allerede blokeret",
-        "spanish": "la publicación ya está eliminada"
+    "post_already_liked": {
+        "english": "post is already liked",
+        "danish": "opslaget er allerede liket",
+        "spanish": "la publicación ya tiene me gusta"
+    },
+    "post_isnt_liked": {
+        "english": "post isnt liked",
+        "danish": "opslaget er ikke liket",
+        "spanish": "la publicación no me gusta"
+    },
+    "cannot_own_post": {
+        "english": "cannot like/unlike own post",
+        "danish": "kan ikke like/unlike eget opslag",
+        "spanish": "no puede darle me gusta o no le gusta a su propia publicación"
+    },
+    "follow_not_found": {
+        "english": "you are already following this user",
+        "danish": "du følger allerede denne bruger",
+        "spanish": "ya estás siguiendo a este usuario"
+    },
+    "follow_already_exists": {
+        "english": "you are not following this user",
+        "danish": "du følger ikke denne bruger",
+        "spanish": "no estás siguiendo a este usuario"
+    },
+    "user_cannot_follow": {
+        "english": "you cannot follow yourself",
+        "danish": "du kan ikke følge digselv",
+        "spanish": "no puedes seguirte a ti mismo"
     }
 }

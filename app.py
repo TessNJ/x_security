@@ -45,7 +45,6 @@ def _____USER_____(): pass
 
 @app.get("/")
 def view_index():
-
     return render_template("index.html")
 
 ##############################
@@ -89,8 +88,8 @@ def login(lan = "english"):
 
             if user["user_verification_key"] != "":
                 raise Exception(x.lans('user_not_verified').capitalize(), 400)
+            
             if user["user_deleted_at"] != 0 :
-                # raise Exception(x.lans('user_deleted'), 400)
                 raise Exception(x.lans('user_deactivated"').capitalize(), 400)
 
             user.pop("user_password")
@@ -139,7 +138,6 @@ def signup(lan = "english"):
         return render_template("signup.html", x=x, lan=lan)
 
     if request.method == "POST":
-        # lan = session["user"]["user_language"]
         try:
             # Validate
             user_email = x.validate_user_email()
@@ -169,7 +167,6 @@ def signup(lan = "english"):
 
             # send verification email
             email_verify_account = render_template("_email_verify_account.html", user_verification_key=user_verification_key, lan=lan)
-            # ic(email_verify_account)
             x.send_email(user_email, x.lans("verify_your_account").capitalize(), email_verify_account)
 
             return f"""<mixhtml mix-redirect="{ url_for('login') }"></mixhtml>""", 400
@@ -202,9 +199,7 @@ def signup(lan = "english"):
 def verify_account():
     if not x.validate_user_logged() : return x.redirect_index_flask()
     try:
-        lan = request.args.get("lan", "")
-        # lan = "en"
-        user_verification_key = x.validate_uuid4_without_dashes(request.args.get("key", ""),lan)
+        user_verification_key = x.validate_uuid4_without_dashes(request.args.get("key", ""))
         user_verified_at = int(time.time())
         db, cursor = x.db()
         q = "UPDATE users SET user_verification_key = '', user_verified_at = %s WHERE user_verification_key = %s"
@@ -266,7 +261,7 @@ def request_password(lan="english"):
             db.commit()
             
             email_forgot_password = render_template("_email_forgot_password.html", user_password_reset=user_password_reset, lan=x.default_language)
-            # ic(email_forgot_password)
+            
             x.send_email(user_email, x.lans('set_new_password').capitalize(), email_forgot_password)
 
             toast_ok = render_template("___toast_ok.html", message=x.lans('password_reset_sent').capitalize())
@@ -310,7 +305,6 @@ def change_password(lan = "english"):
 
             if not user: raise Exception(x.lans('link_is_invalid').capitalize(), 400)
 
-        
             return render_template("change_password.html", lan=lan, x=x, user_password_reset=user_password_reset)
         except Exception as ex:
             ic(ex)
@@ -374,7 +368,6 @@ def home(lan="english"):
     try:
         user = session.get("user", "")
         lan = session["user"]["user_language"]
-        # ic(user["user_pk"])
 
         next_page = 2
 
@@ -382,7 +375,6 @@ def home(lan="english"):
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
         cursor.execute(q)
         tweets = cursor.fetchall()
-        # ic(tweets)
         
         for tweet in tweets:
             q="SELECT EXISTS(SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s) AS liked"
@@ -394,7 +386,6 @@ def home(lan="english"):
         q = "SELECT * FROM trends ORDER BY RAND() LIMIT 3"
         cursor.execute(q)
         trends = cursor.fetchall()
-        # ic(trends)
 
         user_follower = session.get("user", "")
 
@@ -427,10 +418,7 @@ def home(lan="english"):
 def home_comp():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
-
         user = session.get("user", "")
-        lan = session["user"]["user_language"]
-        if not user: return "error" #maybe not needed
         db, cursor = x.db()
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
         cursor.execute(q)
@@ -466,19 +454,14 @@ def profile():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
         user = session.get("user", "")
-        lan = session["user"]["user_language"]
-
-        if not user: return "error"
 
         q = "SELECT * FROM users WHERE user_pk = %s"
         db, cursor = x.db()
         cursor.execute(q, (user["user_pk"],))
         user = cursor.fetchone()
 
-        profileInfo = {"name":user["user_first_name"], "handle":user["user_username"], "path":user["user_avatar_path"]}
-
         lan = session["user"]["user_language"]
-        profile_html = render_template("_profile.html", x=x, user=user, lan=lan, profileInfo=profileInfo)
+        profile_html = render_template("_profile.html", x=x, user=user, lan=lan)
         return f"""<browser mix-update="main">{ profile_html }</browser>"""
     except Exception as ex:
         ic(ex)
@@ -501,9 +484,6 @@ def api_update_profile():
     try:
 
         user = session.get("user", "")
-        if not user: return "invalid user"
-
-        lan = session["user"]["user_language"]
 
         ######### img
         uploaded_file = request.files.get('user_avatar_path', "default.jpg")
@@ -524,8 +504,6 @@ def api_update_profile():
         db, cursor = x.db()
         cursor.execute(q, (user_email, user_username, user_first_name, new_name, user_updated_at, user["user_pk"]))
         db.commit()
-
-        # lan = session["user"]["user_language"]
 
         q = "SELECT * FROM users WHERE user_pk = %s"
         cursor.execute(q, (user["user_pk"],))
@@ -623,7 +601,6 @@ def delete_user() :
         session.clear()
         return redirect(url_for("login"))
 
-
     except Exception as ex:
         ic(ex)
         if "db" in locals(): db.rollback()
@@ -643,20 +620,18 @@ def delete_user() :
 def api_get_tweets():
     try:
         next_page = int(request.args.get("page", ""))
-        # ic(next_page)
+
         db, cursor = x.db()
-        # q = "SELECT * FROM posts LIMIT %s, 3"
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0  ORDER BY post_created_at DESC LIMIT %s, 5"
         cursor.execute(q, ((next_page - 1)*5, ))
         tweets = cursor.fetchall()
-        ic(len(tweets))
+        
         container = ""
 
         for tweet in tweets[:4]:
             html_tweet = render_template("_tweet.html", tweet = tweet)
             container = container + html_tweet
 
-        # ic(container)
         if len(tweets) == 5:
             new_hyperlink = render_template("___show_more.html", next_page=next_page+1)
         else :
@@ -691,8 +666,6 @@ def api_create_post():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
         user = session.get("user", "")
-        lan = session["user"]["user_language"]
-        # if not user: return "invalid user"
         user_pk = user["user_pk"]
         post = x.validate_post(request.form.get("post", ""))
 
@@ -706,7 +679,6 @@ def api_create_post():
             post_image_path = ""
 
         post_pk = uuid.uuid4().hex
-        # post_image_path = ""
         post_created_at = int(time.time())
         post_updated_at = 0
         post_deleted_at = 0
@@ -828,8 +800,7 @@ def api_update_post():
             cursor.execute(q, (post_pk,))
             tweet = cursor.fetchone()
 
-            # ic(tweet)
-            # return "ok"
+            
             post_edit_container = render_template("___tweet-display.html", tweet=tweet)
             return f"""
                 <browser mix-replace="#post_{tweet['post_pk']}">{post_edit_container}</browser>
@@ -882,8 +853,6 @@ def api_cancel_post():
 @x.no_cache
 def api_cancel_confirm():
     try:
-        post_pk = request.args.get("key", "")
-
         return f"""
             <browser mix-update="#delete_post_confirm"></browser>
         """
@@ -929,6 +898,7 @@ def api_delete_post():
     if request.method == "POST":
         try:
             post_pk = request.args.get("key", "")
+            user = session.get("user", "")
             
             db, cursor = x.db()
             q="SELECT * FROM posts WHERE post_pk = %s"
@@ -944,9 +914,6 @@ def api_delete_post():
             db.commit()
             if cursor.rowcount != 1: raise Exception(x.lans('post_couldnt_update').capitalize(), 400)
 
-            user = session.get("user", "")
-            # lan = session["user"]["user_language"]
-            if not user: return "error" #maybe not needed
 
             q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
             cursor.execute(q)
@@ -1118,12 +1085,11 @@ def create_follow():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
         user_followed = x.validate_uuid4_without_dashes(request.args.get("user_pk", ""))
-        # ic(user_followed)
 
         ### select user ###
         user_follower = session.get("user", "")
 
-        if user_followed == user_follower["user_pk"] : return ""
+        if user_followed == user_follower["user_pk"] : raise Exception(x.lans('user_cannot_follow').capitalize(), 400)
         
         
         ### check follow ###
@@ -1134,7 +1100,7 @@ def create_follow():
         following = cursor.fetchone()
 
 
-        if following != None : return ""
+        if following != None : raise Exception(x.lans('follow_already_exists').capitalize(), 400)
 
         ### create follow ###
         follow_created_at = int(time.time())
@@ -1180,6 +1146,8 @@ def remove_follow():
         
         # select user
         user_follower = session.get("user", "")
+
+        if user_followed == user_follower["user_pk"] : raise Exception(x.lans('user_cannot_follow').capitalize(), 400)
         
         # check follow
         db, cursor = x.db()
@@ -1187,21 +1155,16 @@ def remove_follow():
         cursor.execute(q, (user_followed, user_follower["user_pk"]))
 
         following = cursor.fetchone()
-
-        if following == None : return ""
+        if following == None : raise Exception(x.lans('follow_not_found').capitalize(), 400)
 
         # Delete follow
         q = "DELETE FROM follows WHERE followed_fk = %s AND follower_fk = %s"
         cursor.execute(q, (user_followed, user_follower["user_pk"]))
         db.commit()
-        
-        ### Send data ###
+
 
         suggestion = {}
         suggestion["user_pk"] = user_followed
-        # q = "SELECT * FROM users WHERE user_pk = %s"
-        # cursor.execute(q, (user_followed, ))
-        # user_followed_data = cursor.fetchone()
         
         new_input = render_template("___button_follow.html", suggestion=suggestion)
 
@@ -1238,7 +1201,6 @@ def following():
         cursor.execute(q, (user_follower["user_pk"], user_follower["user_pk"],))
         user_all_following = cursor.fetchall()
 
-        # ic(user_all_following)
         following_html = render_template("_following.html", user_all_following=user_all_following)
         return f"""<mixhtml mix-update="main">{ following_html }</mixhtml>"""
     except Exception as ex:
@@ -1261,6 +1223,9 @@ def following():
 def api_search():
     try:
         # TODO: The input search_for must be validated
+
+
+
         user = session.get("user", "")
         search_for = request.form.get("search_for", "")
         if not search_for:
@@ -1268,7 +1233,7 @@ def api_search():
             <browser mix-remove="#search_results"></browser>
             """
         part_of_query = f"%{search_for}%"
-        ic(search_for)
+        
         db, cursor = x.db()
         q = "SELECT * FROM users WHERE user_is_blocked = 0 AND user_deleted_at = 0 AND user_username LIKE %s AND user_username != %s"
         cursor.execute(q, (part_of_query, user["user_username"]))
@@ -1277,7 +1242,7 @@ def api_search():
         q = "SELECT * FROM follows WHERE follower_fk = %s"
         cursor.execute(q, (user["user_pk"],))
         following = cursor.fetchall()
-        ic(following)
+
 
         for search_user in users:
             q="SELECT EXISTS(SELECT * FROM follows WHERE follower_fk = %s AND followed_fk = %s) AS followed"
@@ -1317,25 +1282,19 @@ def create_like():
         cursor.execute(q, (post_liked_pk,))
         post = cursor.fetchone()
 
-        if post["post_user_fk"] == like_user_fk["user_pk"] : return ""
+        if post["post_user_fk"] == like_user_fk["user_pk"] : raise Exception(x.lans('cannot_own_post').capitalize(), 400)
 
         ### check like ###
         q="SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s"
         cursor.execute(q, (like_user_fk["user_pk"], post["post_pk"]))
         like = cursor.fetchone()
 
-        if like != None : return ""
+        if like != None : raise Exception(x.lans('post_already_liked').capitalize(), 400)
 
         ### create like ###
         like_created_at = int(time.time())
-        # q = "INSERT INTO likes (liked_post_fk, liker_user_fk, like_created_at) VALUES (%s, %s, %s)"
         q = "INSERT INTO likes VALUES (%s, %s, %s)"
         cursor.execute(q, (post_liked_pk, like_user_fk["user_pk"], like_created_at))
-        
-
-        ### update total likes ###
-        # q="UPDATE posts SET post_total_likes=post_total_likes+1 WHERE post_pk = %s"        
-        # cursor.execute(q, (post["post_pk"],))
         db.commit()
 
         post["liked"] = bool(True)
@@ -1376,9 +1335,7 @@ def create_like():
 def remove_like():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
-        # get variable
         post_liked_pk = x.validate_uuid4_without_dashes(request.args.get("post_pk", ""))
-        # select user
         like_user_fk = session.get("user", "")
 
         ### check post user ###
@@ -1387,7 +1344,7 @@ def remove_like():
         cursor.execute(q, (post_liked_pk,))
         post = cursor.fetchone()
 
-        if post["post_user_fk"] == like_user_fk["user_pk"] : return ""
+        if post["post_user_fk"] == like_user_fk["user_pk"] : raise Exception(x.lans('cannot_own_post').capitalize(), 400)
         
         # check like
         db, cursor = x.db()
@@ -1395,7 +1352,7 @@ def remove_like():
         cursor.execute(q, (like_user_fk["user_pk"], post_liked_pk))
         like = cursor.fetchone()
 
-        if like == None : return ""
+        if like == None : raise Exception(x.lans('post_isnt_liked').capitalize(), 400)
 
         # Delete like
         q = "DELETE FROM likes WHERE liked_post_fk = %s AND liker_user_fk = %s"
@@ -1403,8 +1360,7 @@ def remove_like():
 
         ### update total likes ###
         post_total_likes = post["post_total_likes"]-1
-        # q="UPDATE posts SET post_total_likes=%s WHERE post_pk = %s"        
-        # cursor.execute(q, (post_total_likes, post_liked_pk,))
+
         db.commit()
         
         ### Send data ###
@@ -1449,13 +1405,11 @@ def admin(lan="english") :
 
     if request.method == "POST":
         try : 
-            # correct_email = app.config['ADMIN_EMAIL']
-            # correct_password  = app.config['ADMIN_PASSWORD']
             email = request.form.get("user_email", "")
             password = request.form.get("user_password", "")
 
-            if  email != app.config['ADMIN_EMAIL'] : raise Exception(x.lans('Incorrect email').capitalize(), 400)
-            if  password != app.config['ADMIN_PASSWORD'] : raise Exception(x.lans('Incorrect credentials').capitalize(), 400)
+            if  email != app.config['ADMIN_EMAIL'] : raise Exception(x.lans('invalid_email').capitalize(), 400)
+            if  password != app.config['ADMIN_PASSWORD'] : raise Exception(x.lans('invalid_credentials').capitalize(), 400)
 
             admin = {}
             admin["email"] = app.config['ADMIN_EMAIL']
@@ -1577,19 +1531,15 @@ def admin_posts():
             
             db, cursor = x.db()
             q="CALL get_posts(%s)"
-            # q="SELECT * FROM posts LIMIT 10 OFFSET %s"
             cursor.execute(q,(0,))
             all_posts = cursor.fetchall()
 
-            # ic(len(all_posts))
 
             if len(all_posts)== 11 :
                 next_page = 1
                 all_posts.pop()
             else :
                 next_page = 0
-
-            # ic(next_page)
 
 
             return render_template("control_panel_posts.html", tweets=all_posts, next_page=next_page)
@@ -1621,8 +1571,6 @@ def api_get_tweets_admin():
         
         q="CALL get_posts(%s)"
         cursor.execute(q,(10*next_page,))
-        # q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0  ORDER BY post_created_at DESC LIMIT %s, 5"
-        # cursor.execute(q, ((next_page - 1)*5, ))
         tweets = cursor.fetchall()
         ic(len(tweets))
         container = ""
@@ -1796,22 +1744,22 @@ def unblock_post():
         cursor.execute(q, (post_pk,))
         tweet = cursor.fetchone()
 
-        if tweet["post_deleted_at"] != 0 : raise Exception("post is deleted", 400)
-        if tweet["post_is_blocked"] == 0 : raise Exception("post isnt block", 400)
+        if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
+        if tweet["post_is_blocked"] == 0 : raise Exception(f"{x.lans('post_isnt').capitalize()} {x.lans('blocked')}" , 400)
 
         q="UPDATE posts SET post_is_blocked = 0 WHERE post_pk = %s"
         cursor.execute(q, (post_pk, ))
         db.commit()
-        if cursor.rowcount != 1: raise Exception("post couldnt be unblocked", 400)
+        if cursor.rowcount != 1: raise Exception(f"{x.lans('post_couldnt_be').capitalize()} {x.lans('unblocked')}", 400)
 
         new_input = render_template("___button_block_post.html", tweet=tweet)
         post_image = tweet["post_image_path"]
 
         email_post_unblocked = render_template("_email_post_unblocked.html", tweet=tweet, lan=x.default_language)
         # ic(email_verify_account)
-        x.send_email_post(tweet["user_email"], "A post on X has been unblocked", email_post_unblocked, post_image) 
+        x.send_email_post(tweet["user_email"], f"{x.lans('a_post_has_been').capitalize()} {x.lans('unblocked')}", email_post_unblocked, post_image) 
        
-        toast_ok = render_template("___toast_ok.html", message="Email sent successfully!")
+        toast_ok = render_template("___toast_ok.html", message=x.lans('email_sent_success').capitalize())
 
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -1845,9 +1793,7 @@ def admin_user():
 
 
         db, cursor = x.db()
-        # q="CALL get_all_users()"
         q="CALL get_users(%s)"
-        # q="SELECT * FROM users LIMIT 10 offset %s"
         cursor.execute(q,(0,))
         all_users = cursor.fetchall()
 
@@ -1888,8 +1834,6 @@ def api_get_users_admin():
         
         q="CALL get_users(%s)"
         cursor.execute(q,(10*next_page,))
-        # q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0  ORDER BY post_created_at DESC LIMIT %s, 5"
-        # cursor.execute(q, ((next_page - 1)*5, ))
         users = cursor.fetchall()
         ic(users)
         container = ""
@@ -2010,21 +1954,21 @@ def block_user():
         cursor.execute(q, (user_pk,))
         user = cursor.fetchone()
 
-        if user["user_deleted_at"] != 0 : raise Exception("user is deleted", 400)
-        if user["user_is_blocked"] != 0 : raise Exception("user is already block", 400)
+        if user["user_deleted_at"] != 0 : raise Exception(x.lans('user_is_deleted').capitalize(), 400)
+        if user["user_is_blocked"] != 0 : raise Exception(f"{x.lans('user_is_already').capitalize()} {x.lans('blocked')}", 400)
 
         q="UPDATE users SET user_is_blocked = 1 WHERE user_pk = %s"
         cursor.execute(q, (user_pk, ))
         db.commit()
-        if cursor.rowcount != 1: raise Exception("user couldnt be blocked", 400)
+        if cursor.rowcount != 1: raise Exception(f"{x.lans('user_couldnt_be').capitalize()} {x.lans('blocked')}", 400)
 
         new_input = render_template("___button_unblock_user.html", user=user)
         
         email_user_blocked = render_template("_email_user_blocked.html", lan=x.default_language)
         # ic(email_verify_account)
-        x.send_email(user["user_email"], "Account has been blocked", email_user_blocked) 
+        x.send_email(user["user_email"], f"{x.lans('account_has_been').capitalize()} {x.lans('blocked')}", email_user_blocked) 
        
-        toast_ok = render_template("___toast_ok.html", message="Email sent successfully!")
+        toast_ok = render_template("___toast_ok.html", message=x.lans('email_sent_success').capitalize())
 
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -2061,21 +2005,21 @@ def unblock_user():
         cursor.execute(q, (user_pk,))
         user = cursor.fetchone()
 
-        if user["user_deleted_at"] != 0 : raise Exception("user is deleted", 400)
-        if user["user_is_blocked"] == 0 : raise Exception("user isnt blocked", 400)
+        if user["user_deleted_at"] != 0 : raise Exception(x.lans('user_is_deleted').capitalize(), 400)
+        if user["user_is_blocked"] == 0 : raise Exception(f"{x.lans('user_isnt').capitalize()} {x.lans('blocked')}", 400)
 
         q="UPDATE users SET user_is_blocked = 0 WHERE user_pk = %s"
         cursor.execute(q, (user_pk, ))
         db.commit()
-        if cursor.rowcount != 1: raise Exception("user couldnt be unblocked", 400)
+        if cursor.rowcount != 1: raise Exception(f"{x.lans('user_couldnt_be').capitalize()} {x.lans('unblocked')}", 400)
 
         new_input = render_template("___button_block_user.html", user=user)
         
         email_user_unblocked = render_template("_email_user_unblocked.html", lan=x.default_language)
         # ic(email_verify_account)
-        x.send_email(user["user_email"], "Account has been unblocked", email_user_unblocked) 
+        x.send_email(user["user_email"], f"{x.lans('account_has_been').capitalize()} {x.lans('unblocked')}", email_user_unblocked) 
        
-        toast_ok = render_template("___toast_ok.html", message="Email sent successfully!")
+        toast_ok = render_template("___toast_ok.html", message=x.lans('email_sent_success').capitalize())
 
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>

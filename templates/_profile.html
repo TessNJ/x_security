@@ -4,7 +4,7 @@
 
 <div>
     <img id="user_avatar"
-        src="{{ url_for('static', filename='uploads/'~(profileInfo['path'] if profileInfo['path'] else 'default.jpg')) }}"
+        src="{{ url_for('static', filename='uploads/'~(session['user_avatar_path'] if session['user_avatar_path'] else 'default.jpg')) }}"
         class="w-8 h-8 rounded-full" alt="Profile Picture">
 </div>
 <form class="x-dialog__form" action="{{ url_for('api_update_profile') }}" mix-post autocomplete="off">
