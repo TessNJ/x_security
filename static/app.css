@@ -61,7 +61,7 @@ h1 {
 
   .burger.open i.fa-xmark {
     display: block;
-    margin-left: 13rem;
+    margin-left: 15rem;
     width: 32px;
     transform: translateX(0);
     transition: transform 0.3s ease-in-out;
@@ -105,7 +105,7 @@ h1 {
     nav {
       width: 70%;
       max-width: 260px;
-      height: 100vh;
+      /* height: 100vh; */
       background: #fff;
       transform: translateX(-100%);
     }
@@ -132,6 +132,7 @@ h1 {
     flex-direction: column;
     gap: 0rem;
     padding: 0;
+    margin-top: 1.2rem;
 
     li {
       a {

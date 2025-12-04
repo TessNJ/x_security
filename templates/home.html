@@ -28,7 +28,7 @@
         </button>
         <nav>
             <ul>
-                <li><a href="#"><i class="fa-brands fa-x-twitter"></i></a></li>
+                <li><a href="#" style="pointer-events: none;"><i class="fa-brands fa-x-twitter"></i></a></li>
 
 
                 <li>
@@ -40,13 +40,13 @@
                 </li>
 
 
-                <li><a href="#"><i class="fa-solid fa-magnifying-glass"></i><span>{{ x.lans('explore').capitalize() }}</span></a>
+                <li><a href="#" style="pointer-events: none;"><i class="fa-solid fa-magnifying-glass"></i><span>{{ x.lans('explore').capitalize() }}</span></a>
                 </li>
-                <li><a href="#"><i class="fa-regular fa-bell"></i><span>{{ x.lans('notifications').capitalize() }}</span></a></li>
-                <li><a href="#"><i class="fa-regular fa-envelope"></i><span>{{ x.lans('messages').capitalize() }}</span></a></li>
-                <li><a href="#"><i class="fa-solid fa-atom"></i><span>Grok</span></a></li>
-                <li><a href="#"><i class="fa-regular fa-bookmark"></i><span>{{ x.lans('bookmarks').capitalize() }}</span></a></li>
-                <li><a href="#"><i class="fa-solid fa-briefcase"></i><span>{{ x.lans('jobs').capitalize() }}</span></a></li>
+                <li><a href="#" style="pointer-events: none;"><i class="fa-regular fa-bell"></i><span>{{ x.lans('notifications').capitalize() }}</span></a></li>
+                <li><a href="#" style="pointer-events: none;"><i class="fa-regular fa-envelope"></i><span>{{ x.lans('messages').capitalize() }}</span></a></li>
+                <li><a href="#" style="pointer-events: none;"><i class="fa-solid fa-atom"></i><span>Grok</span></a></li>
+                <li><a href="#" style="pointer-events: none;"><i class="fa-regular fa-bookmark"></i><span>{{ x.lans('bookmarks').capitalize() }}</span></a></li>
+                <li><a href="#" style="pointer-events: none;"><i class="fa-solid fa-briefcase"></i><span>{{ x.lans('jobs').capitalize() }}</span></a></li>
                 <li>
                     <a href="/following" mix-get mix-default="<i class='fa-solid fa-users'></i> {{x.lans('following').capitalize()}}"
                         mix-await="{{x.lans('loading').capitalize()}} ...">
@@ -54,7 +54,7 @@
                         <span class="pointer-e-none">{{ x.lans('following').capitalize() }}</span>
                     </a>
                 </li>
-                <li><a href="#"><i class="fa-solid fa-star"></i><span>{{ x.lans('premium').capitalize() }}</span></a></li>
+                <li><a href="#" style="pointer-events: none;"><i class="fa-solid fa-star"></i><span>{{ x.lans('premium').capitalize() }}</span></a></li>
 
                 <li>
                     <a href="/profile" mix-get mix-default="<i class='fa-regular fa-user'></i> {{x.lans('profile').capitalize()}}"
@@ -64,7 +64,7 @@
                     </a>
                 </li>
 
-                <li><a href="#"><i class="fa-solid fa-ellipsis"></i><span>{{ x.lans('more').capitalize() }}</span></a></li>
+                <li><a href="#" style="pointer-events: none;"><i class="fa-solid fa-ellipsis"></i><span>{{ x.lans('more').capitalize() }}</span></a></li>
                 <li><a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i><span>{{
                             x.lans('logout').capitalize() }}</span></a></li>
             </ul>
