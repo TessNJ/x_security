@@ -126,7 +126,7 @@ def validate_uuid4(uuid4 = ""):
 
 ##############################
 REGEX_UUID4_WITHOUT_DASHES = "^[0-9a-f]{8}[0-9a-f]{4}4[0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$"
-def validate_uuid4_without_dashes(uuid4 = "", ):
+def validate_uuid4_without_dashes(uuid4 = "" ):
     error = lans('twitter_uuid4')
     if not uuid4: raise Exception(error, 400)
     uuid4 = uuid4.strip()
@@ -142,6 +142,26 @@ def validate_post(post = ""):
     post = post.strip()
     if not re.match(REGEX_POST, post): raise Exception(error, 400)
     return post
+
+##############################
+COMMENT_MIN_LEN = 2
+COMMENT_MAX_LEN = 250
+REGEX_COMMENT = f"^.{{{COMMENT_MIN_LEN},{COMMENT_MAX_LEN}}}$"
+def validate_comment(comment = ""):
+    error = f"{lans('comment_must_be').capitalize()}: {COMMENT_MIN_LEN} {lans('to')} {COMMENT_MAX_LEN} {lans('characters')}"
+    comment = comment.strip()
+    if not re.match(REGEX_COMMENT, comment): raise Exception(error, 400)
+    return comment
+
+##############################
+CHECK_USER_USERNAME_MIN = 2
+CHECK_USER_USERNAME_MAX = 20
+REGEX_CHECK_USER_USERNAME = f"^.{{{CHECK_USER_USERNAME_MIN},{CHECK_USER_USERNAME_MAX}}}$"
+def validate_check_user_username(user_username=""):
+    # user_username = request.form.get("user_username", "").strip()
+    error = f"{lans('username').capitalize()}: {lans('invalid_username')}"
+    if not re.match(REGEX_CHECK_USER_USERNAME, user_username): raise Exception(error, 400)
+    return user_username
 
 ##############################
 def send_email(to_email, subject, template):

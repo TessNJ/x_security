@@ -99,6 +99,11 @@
         "danish": "kommenter",
         "spanish": "comentario"
     },
+    "comment_must_be": {
+        "english": "comment must be",
+        "danish": "kommentare skal være",
+        "spanish": "el comentario debe ser"
+    },
     "commenting": {
         "english": "commenting",
         "danish": "kommentere",
@@ -323,6 +328,11 @@
         "english": "invalid password",
         "danish": "ugyldig pinkode",
         "spanish": "clave inválida"
+    },
+    "invalid_username": {
+        "english": "username is invalid",
+        "danish": "brugernavnet er ugyldigt",
+        "spanish": "el nombre de usuario no es válido"
     },
     "jobs": {
         "english": "jobs",

@@ -124,7 +124,13 @@ def logout():
         return redirect(url_for("login"))
     except Exception as ex:
         ic(ex)
-        return "error"
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+
+        # System or developer error
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
 
 ##############################
 @app.route("/signup", methods=["GET", "POST"])
@@ -297,7 +303,7 @@ def change_password(lan = "english"):
     if request.method == "GET":
         try:
             if len(request.args.get("key", "")) != 32: raise Exception(x.lans('link_is_invalid').capitalize(), 400)
-            user_password_reset = x.validate_uuid4_without_dashes(request.args.get("key", ""),lan)
+            user_password_reset = x.validate_uuid4_without_dashes(request.args.get("key", ""))
             
             db, cursor = x.db()
             q = "SELECT * FROM users WHERE user_password_reset = %s"
@@ -328,7 +334,7 @@ def change_password(lan = "english"):
         try:
             user_new_password = x.validate_user_password()
             
-            user_password_reset = x.validate_uuid4_without_dashes(request.args.get("key", ""),x.default_language)
+            user_password_reset = x.validate_uuid4_without_dashes(request.args.get("key", ""))
             user_hashed_password = generate_password_hash(user_new_password)
 
             db, cursor = x.db()
@@ -738,7 +744,7 @@ def api_update_post():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     if request.method == "GET":
         try:
-            post_pk = request.args.get("key", "")
+            post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
 
             db, cursor = x.db()
             q="SELECT * FROM posts WHERE post_pk = %s"
@@ -765,7 +771,7 @@ def api_update_post():
             if "db" in locals(): db.close()
     if request.method == "POST":
         try:
-            post_pk = request.args.get("key", "")
+            post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
             
             db, cursor = x.db()
             q="SELECT * FROM posts WHERE post_pk = %s"
@@ -827,7 +833,7 @@ def api_update_post():
 def api_cancel_post():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
-        post_pk = request.args.get("key", "")
+        post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
 
         db, cursor = x.db()
         q="SELECT * FROM posts WHERE post_pk = %s"
@@ -876,7 +882,7 @@ def api_delete_post():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     if request.method == "GET":
         try:
-            post_pk = request.args.get("key", "")
+            post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
 
             db, cursor = x.db()
             q="SELECT * FROM posts WHERE post_pk = %s"
@@ -903,7 +909,7 @@ def api_delete_post():
             if "db" in locals(): db.close()
     if request.method == "POST":
         try:
-            post_pk = request.args.get("key", "")
+            post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
             user = session.get("user", "")
             
             db, cursor = x.db()
@@ -953,7 +959,7 @@ def api_delete_post():
 def show_comments():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
-        post_pk = request.args.get("key", "")
+        post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
 
         db, cursor = x.db()
 
@@ -995,7 +1001,7 @@ def show_comments():
 def hide_comments():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
-        post_pk = request.args.get("key", "")
+        post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
         tweet = {
             "post_pk":post_pk
         }
@@ -1023,7 +1029,7 @@ def hide_comments():
 def create_comments():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
-        post_pk = request.args.get("key", "")
+        post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
         
         db, cursor = x.db()
         q="SELECT * FROM posts WHERE post_pk = %s"
@@ -1033,7 +1039,7 @@ def create_comments():
         if post["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
 
         user = session.get("user", "")
-        comment_message = x.validate_post(request.form.get("comment", ""))
+        comment_message = x.validate_comment(request.form.get("comment", ""))
 
         comment_created_at = int(time.time())
         comment_updated_at = 0
@@ -1411,8 +1417,8 @@ def admin(lan="english") :
 
     if request.method == "POST":
         try : 
-            email = request.form.get("user_email", "")
-            password = request.form.get("user_password", "")
+            email = x.validate_user_email()
+            password = x.validate_user_password()
 
             if  email != app.config['ADMIN_EMAIL'] : raise Exception(x.lans('invalid_email').capitalize(), 400)
             if  password != app.config['ADMIN_PASSWORD'] : raise Exception(x.lans('invalid_credentials').capitalize(), 400)
@@ -1441,17 +1447,10 @@ def get_data_from_sheet():
         session.clear()
         return redirect(url_for("view_index"))
     try:
-        # Check if the admin is running this end-point, else show error
-
-
-        # flaskwebmail
-        # Create a google sheet
-        # share and make it visible to "anyone with the link"
-        # In the link, find the ID of the sheet. 
-        # Replace the ID in the 2 places bellow
+        
         url= f"https://docs.google.com/spreadsheets/d/{app.config['GOOGLE_SPREADSHEET_KEY']}/export?format=csv&id={app.config['GOOGLE_SPREADSHEET_KEY']}"
         res=requests.get(url=url)
-        # ic(res.text) # contains the csv text structure
+        
         csv_text = res.content.decode('utf-8')
         csv_file = io.StringIO(csv_text) # Use StringIO to treat the string as a file
 
@@ -1617,8 +1616,8 @@ def confirm_block_post():
         session.clear()
         return redirect(url_for("view_index"))
     try: 
-        post_pk = request.args.get("key", "")
-        username = request.args.get("username", "")
+        post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
+        username = x.validate_check_user_username(request.args.get("username", ""))
 
         tweet = {}
         tweet["post_pk"] = post_pk
@@ -1645,8 +1644,8 @@ def confirm_unblock_post():
         session.clear()
         return redirect(url_for("view_index"))
     try: 
-        post_pk = request.args.get("key", "")
-        username = request.args.get("username", "")
+        post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
+        username = x.validate_check_user_username(request.args.get("username", ""))
 
         tweet = {}
         tweet["post_pk"] = post_pk
@@ -1694,7 +1693,7 @@ def block_post():
         return redirect(url_for("view_index"))
     try:
         
-        post_pk = request.args.get("key", "")
+        post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
         
         db, cursor = x.db()
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_pk = %s"
@@ -1748,7 +1747,7 @@ def unblock_post():
         return redirect(url_for("view_index"))
     try:
         
-        post_pk = request.args.get("key", "")
+        post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
         
         db, cursor = x.db()
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_pk = %s"
@@ -1885,8 +1884,8 @@ def confirm_block_user():
         session.clear()
         return redirect(url_for("view_index"))
     try: 
-        user_pk = request.args.get("key", "")
-        username = request.args.get("username", "")
+        user_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
+        username = x.validate_check_user_username(request.args.get("username", ""))
 
         user = {}
         user["user_pk"] = user_pk
@@ -1913,8 +1912,8 @@ def confirm_unblock_user():
         session.clear()
         return redirect(url_for("view_index"))
     try: 
-        user_pk = request.args.get("key", "")
-        username = request.args.get("username", "")
+        user_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
+        username = x.validate_check_user_username(request.args.get("username", ""))
 
         user = {}
         user["user_pk"] = user_pk
@@ -1962,7 +1961,7 @@ def block_user():
         session.clear()
         return redirect(url_for("view_index"))
     try:        
-        user_pk = request.args.get("key", "")
+        user_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
 
         db, cursor = x.db()
         q="SELECT * FROM users WHERE user_pk = %s"
@@ -2013,7 +2012,7 @@ def unblock_user():
         return redirect(url_for("view_index"))
     try:
         
-        user_pk = request.args.get("key", "")
+        user_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
 
         db, cursor = x.db()
         q="SELECT * FROM users WHERE user_pk = %s"

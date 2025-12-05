@@ -213,8 +213,16 @@ main {
   border-left: 1px solid rgb(230, 230, 230);
     .admin-post, .admin-user {
       display: grid;
-      grid-template-columns: 1fr 10rem;
-      margin: 0 20rem;
+      grid-template-columns: 1fr 5rem;
+      margin: auto;
+      img {
+        max-width: 70%;
+      }
+      @media (min-width: 1024px){
+        padding: 0 20rem;
+        width: 100%;
+        
+      }
     }
   .user-display {
     padding: 1rem;
@@ -222,6 +230,8 @@ main {
   }
   .admin-control {
     align-self: center;
+    justify-self: center;
+    text-align: center;
   }
   .admin_show_more {
     margin: 2rem 20rem;
@@ -326,6 +336,12 @@ main {
     .comment:nth-of-type(even) {
       background-color: white;
     }
+  }
+}
+main.admin {
+  border: 0;
+  .post-actions {
+    flex-direction: column;
   }
 }
 

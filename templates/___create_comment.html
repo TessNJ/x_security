@@ -1,6 +1,6 @@
 <form id="comment_container_{{tweet.post_pk}}" action="/api-add-comments?key={{tweet.post_pk}}" mix-post class="d-flex flex-col w-full ml-2">
     <textarea name="comment" placeholder="{{x.lans('aa_comment').capitalize()}}" 
-    class="w-full outline-1 outline-s-solid outline-c-gray:+50 pa-2"></textarea>
+    class="w-full outline-1 outline-s-solid outline-c-gray:+50 pa-2" mix-check="{{ x.REGEX_COMMENT }}"></textarea>
     <button mix-default="{{x.lans('comment').capitalize()}}" mix-await="{{x.lans('commenting').capitalize()}} ..." 
     class="w-auto ml-auto mt-2 bg-c-black text-c-white py-2 px-12 rounded-xl">
         {{x.lans('comment').capitalize()}}
