@@ -194,7 +194,7 @@
         "danish": "følg dette link",
         "spanish": "sigue este enlace"
     },
-    "email_got_to_x": {
+    "email_go_to_x": {
         "english": "go to X",
         "danish": "gå til X",
         "spanish": "ir a X"
@@ -302,7 +302,7 @@
     "home": {
         "english": "home",
         "danish": "hjem",
-        "spanish": "casa"
+        "spanish": "inicio"
     },
     "invalid_credentials": {
         "english": "invalid credentials",

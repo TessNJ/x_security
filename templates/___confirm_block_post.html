@@ -1,10 +1,12 @@
-<div class="block_post" >
-    <p>{{x.lans('are_you_sure_block').capitalize()}} {{x.lans('this_post_by')}} @{{tweet.user_username}}?</p>
-    <p>{{x.lans('post_id').capitalize()}}: {{tweet.post_pk}}</p>
-    <p>{{x.lans('user_will_be_notified').capitalize()}}</p>
-    <div>
-        <a mix-get href="/confirm_post_cancel?key={{tweet.post_pk}}">{{x.lans('cancel').capitalize()}}</a>
-        <a mix-post href="/api-block-post?key={{tweet.post_pk}}&username={{tweet.user_username}}" mix-default="{{x.lans('block').capitalize()}}" 
+<div>
+    <div class="block_post" >
+        <p>{{x.lans('are_you_sure_block').capitalize()}} {{x.lans('this_post_by')}} @{{tweet.user_username}}?</p>
+        <p>{{x.lans('post_id').capitalize()}}: {{tweet.post_pk}}</p>
+        <p>{{x.lans('user_will_be_notified').capitalize()}}</p>
+        <div>
+            <a mix-get href="/confirm_post_cancel?key={{tweet.post_pk}}">{{x.lans('cancel').capitalize()}}</a>
+            <a mix-post href="/api-block-post?key={{tweet.post_pk}}&username={{tweet.user_username}}" mix-default="{{x.lans('block').capitalize()}}" 
             mix-await="{{x.lans('blocking').capitalize()}}...">{{x.lans('block').capitalize()}}</a>
+        </div>
     </div>
 </div>

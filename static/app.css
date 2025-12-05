@@ -700,7 +700,7 @@ aside {
   text-decoration: underline;
 }
 
-#confirmDelete, .pop_up_confirm {
+#confirmDelete>div, .pop_up_confirm>div {
   position: fixed;
   top: 25%;
   left: 0;
@@ -730,3 +730,7 @@ aside {
     }
   }
 } 
+
+.current_language {
+  filter: grayscale(1);
+}

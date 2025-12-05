@@ -1,7 +1,9 @@
-<div class="delete_post" >
-    {{x.lans('delete_post_confirm').capitalize()}}
-    <div>
-        <a mix-get href="/api-cancel-confirm?key={{tweet.post_pk}}">{{x.lans('cancel').capitalize()}}</a>
-        <a mix-post href="/api-delete-post?key={{tweet.post_pk}}">{{x.lans('delete').capitalize()}}</a>
+<div>
+    <div class="delete_post" >
+        {{x.lans('delete_post_confirm').capitalize()}}
+        <div>
+            <a mix-get href="/api-cancel-confirm?key={{tweet.post_pk}}">{{x.lans('cancel').capitalize()}}</a>
+            <a mix-post href="/api-delete-post?key={{tweet.post_pk}}">{{x.lans('delete').capitalize()}}</a>
+        </div>
     </div>
 </div>

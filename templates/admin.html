@@ -7,23 +7,30 @@
 
       <div class="d-flex gap-3">
 
-        {% if lan != "english": %}
-        <a href="/admin/english">
+
+        <a href="/admin/english"
+        {% if lan == "english": %}
+        class="current_language"
+        {% endif %}
+        >
           <img src="/static/images/flag_english.png" class="w-5">
         </a>
-        {% endif %}
 
-        {% if lan != "danish": %}
-        <a href="/admin/danish">
+        <a href="/admin/danish"
+        {% if lan == "danish": %}
+        class="current_language"
+        {% endif %}
+        >
           <img src="/static/images/flag_danish.png" class="w-5">
         </a>
-        {% endif %}
 
-        {% if lan != "spanish": %}
-        <a href="/admin/spanish">
-          <img src="/static/images/flag_spanish.png" class="w-5">
-        </a>
+        <a href="/admin/spanish"
+        {% if lan == "spanish": %}
+        class="current_language"
         {% endif %}        
+        >
+          <img src="/static/images/flag_spanish.png" class="w-5">
+        </a>    
 
       </div>
 

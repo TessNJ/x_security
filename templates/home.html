@@ -93,7 +93,7 @@
 
         <aside>
             <form id="search_form" class="p-relative">
-                <input mix-post="/api-search" mix-input mix-delay="1000" name="search_for" type="text" placeholder="{{x.lans('search').capitalize()}} Twitter">
+                <input mix-post="/api-search" mix-input mix-delay="1000" name="search_for" type="text" placeholder="{{x.lans('search').capitalize()}} Twitter" mix-check="^.{2,20}$">
                 <button class="cursor-pointer">{{x.lans('search').capitalize()}}</button>                             
             </form>
 

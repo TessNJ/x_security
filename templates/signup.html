@@ -15,23 +15,30 @@
     <div class="x-dialog__content">
       <div class="d-flex gap-3">
 
-        {% if lan != "english": %}
-        <a href="/signup/english">
+
+        <a href="/signup/english"
+        {% if lan == "english": %}
+        class="current_language"
+        {% endif %}
+        >
           <img src="/static/images/flag_english.png" class="w-5">
         </a>
-        {% endif %}
 
-        {% if lan != "danish": %}
-        <a href="/signup/danish">
+        <a href="/signup/danish"
+        {% if lan == "danish": %}
+        class="current_language"
+        {% endif %}
+        >
           <img src="/static/images/flag_danish.png" class="w-5">
         </a>
-        {% endif %}
 
-        {% if lan != "spanish": %}
-        <a href="/signup/spanish">
-          <img src="/static/images/flag_spanish.png" class="w-5">
-        </a>
+        <a href="/signup/spanish"
+        {% if lan == "spanish": %}
+        class="current_language"
         {% endif %}        
+        >
+          <img src="/static/images/flag_spanish.png" class="w-5">
+        </a>      
 
       </div>
 
