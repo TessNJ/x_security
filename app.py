@@ -62,12 +62,13 @@ def login(lan = "english"):
 
     if lan not in x.allowed_languages: lan = "english"
     x.default_language = lan
+    
+    if session.get("user", ""): return redirect(url_for("home"))
 
     if request.method == "GET":
         message = session.get("message", "")
         session["message"] = ""
 
-        if session.get("user", ""): return redirect(url_for("home"))
         return render_template("login.html", lan=x.default_language, message=message)
 
     if request.method == "POST":
@@ -618,6 +619,7 @@ def delete_user() :
 ##############################
 @app.get("/api-get-tweets")
 def api_get_tweets():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
         next_page = int(request.args.get("page", ""))
 
@@ -733,6 +735,7 @@ def api_create_post():
 @app.route("/api-update-post", methods=["GET","POST"])
 @x.no_cache
 def api_update_post():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     if request.method == "GET":
         try:
             post_pk = request.args.get("key", "")
@@ -822,6 +825,7 @@ def api_update_post():
 @app.route("/api-cancel-post", methods=["GET"])
 @x.no_cache
 def api_cancel_post():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
         post_pk = request.args.get("key", "")
 
@@ -835,7 +839,7 @@ def api_cancel_post():
         post_edit_container = render_template("___tweet-display.html", tweet=tweet)
         return f"""
             <browser mix-replace="#post_{tweet['post_pk']}">{post_edit_container}</browser>
-            <browser mix-update="#delete_{tweet['post_pk']}"></browser>
+            <browser mix-update="#delete_post_confirm"></browser>
         """
     except Exception as ex:
         if ex.args[1] == 400:
@@ -852,6 +856,7 @@ def api_cancel_post():
 @app.route("/api-cancel-confirm", methods=["GET"])
 @x.no_cache
 def api_cancel_confirm():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
         return f"""
             <browser mix-update="#delete_post_confirm"></browser>
@@ -868,6 +873,7 @@ def api_cancel_confirm():
 @app.route("/api-delete-post", methods=["GET","POST"])
 @x.no_cache
 def api_delete_post():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     if request.method == "GET":
         try:
             post_pk = request.args.get("key", "")
@@ -945,6 +951,7 @@ def api_delete_post():
 @app.route("/show-comments", methods=["GET"])
 @x.no_cache
 def show_comments():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
         post_pk = request.args.get("key", "")
 
@@ -986,6 +993,7 @@ def show_comments():
 @app.route("/hide-comments", methods=["GET"])
 @x.no_cache
 def hide_comments():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
         post_pk = request.args.get("key", "")
         tweet = {
@@ -1013,6 +1021,7 @@ def hide_comments():
 @app.route("/api-add-comments", methods=["POST"])
 @x.no_cache
 def create_comments():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
         post_pk = request.args.get("key", "")
         
@@ -1221,11 +1230,8 @@ def following():
 @app.post("/api-search")
 @x.no_cache
 def api_search():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
-        # TODO: The input search_for must be validated
-
-
-
         user = session.get("user", "")
         search_for = request.form.get("search_for", "")
         if not search_for:
@@ -1239,9 +1245,9 @@ def api_search():
         cursor.execute(q, (part_of_query, user["user_username"]))
         users = cursor.fetchall()
 
-        q = "SELECT * FROM follows WHERE follower_fk = %s"
-        cursor.execute(q, (user["user_pk"],))
-        following = cursor.fetchall()
+        # q = "SELECT * FROM follows WHERE follower_fk = %s"
+        # cursor.execute(q, (user["user_pk"],))
+        # following = cursor.fetchall()
 
 
         for search_user in users:
@@ -1431,11 +1437,11 @@ def admin(lan="english") :
 @app.get("/8152a9ee-1f86-4a7a-9cd7-2f45b4087694ecxx523f7c-b27f-49b7-9fc1-24baaba82a5e")
 @x.no_cache
 def get_data_from_sheet():
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
     try:
         # Check if the admin is running this end-point, else show error
-        if not x.validate_admin_logged() :
-            session.clear()
-            return redirect(url_for("view_index"))
 
 
         # flaskwebmail
@@ -1494,11 +1500,10 @@ def get_data_from_sheet():
 @app.route("/control_panel", methods=["GET"])
 @x.no_cache
 def control_panel():
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
     try:
-        if not x.validate_admin_logged() :
-            session.clear()
-            return redirect(url_for("view_index"))
-
         return render_template("control_panel.html")
     except Exception as ex:
         ic(ex)
@@ -1523,11 +1528,11 @@ def temp_route():
 @app.route("/control_panel/posts", methods=["GET"])
 @x.no_cache
 def admin_posts():
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
     if request.method == "GET":
         try:
-            if not x.validate_admin_logged() :
-                session.clear()
-                return redirect(url_for("view_index"))
             
             db, cursor = x.db()
             q="CALL get_posts(%s)"
@@ -1559,12 +1564,10 @@ def admin_posts():
 ##############################
 @app.get("/api-get-tweets-admin")
 def api_get_tweets_admin():
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
     try:
-        if not x.validate_admin_logged() :
-            session.clear()
-            return redirect(url_for("view_index"))
-        
-
         next_page = int(request.args.get("page", ""))
         ic(next_page)
         db, cursor = x.db()
@@ -1610,6 +1613,9 @@ def api_get_tweets_admin():
 @app.route("/confirm_block_post", methods=["POST"])
 @x.no_cache
 def confirm_block_post():
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
     try: 
         post_pk = request.args.get("key", "")
         username = request.args.get("username", "")
@@ -1635,6 +1641,9 @@ def confirm_block_post():
 @app.route("/confirm_unblock_post", methods=["POST"])
 @x.no_cache
 def confirm_unblock_post():
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
     try: 
         post_pk = request.args.get("key", "")
         username = request.args.get("username", "")
@@ -1660,6 +1669,9 @@ def confirm_unblock_post():
 @app.route("/confirm_post_cancel", methods=["GET"])
 @x.no_cache
 def confirm_post_cancel():
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
     try: 
         return f"""
         <browser mix-update="#block_confirm"></browser>
@@ -1677,10 +1689,10 @@ def confirm_post_cancel():
 #########################      
 @app.post("/api-block-post")
 def block_post():
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
     try:
-        if not x.validate_admin_logged() :
-            session.clear()
-            return redirect(url_for("view_index"))
         
         post_pk = request.args.get("key", "")
         
@@ -1731,10 +1743,10 @@ def block_post():
 #########################      
 @app.post("/api-unblock-post")
 def unblock_post():
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
     try:
-        if not x.validate_admin_logged() :
-            session.clear()
-            return redirect(url_for("view_index"))
         
         post_pk = request.args.get("key", "")
         
@@ -1785,12 +1797,10 @@ def unblock_post():
 @app.route("/control_panel/users", methods=["GET"])
 @x.no_cache
 def admin_user():
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
     try:
-        if not x.validate_admin_logged() :
-            session.clear()
-            return redirect(url_for("view_index"))
-
-
         db, cursor = x.db()
         q="CALL get_users(%s)"
         cursor.execute(q,(0,))
@@ -1821,12 +1831,10 @@ def admin_user():
 ##############################
 @app.get("/api-get-users-admin")
 def api_get_users_admin():
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
     try:
-        if not x.validate_admin_logged() :
-            session.clear()
-            return redirect(url_for("view_index"))
-        
-
         next_page = int(request.args.get("page", ""))
         ic(next_page)
         db, cursor = x.db()
@@ -1873,6 +1881,9 @@ def api_get_users_admin():
 @app.route("/confirm_block_user", methods=["POST"])
 @x.no_cache
 def confirm_block_user():
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
     try: 
         user_pk = request.args.get("key", "")
         username = request.args.get("username", "")
@@ -1898,6 +1909,9 @@ def confirm_block_user():
 @app.route("/confirm_unblock_user", methods=["POST"])
 @x.no_cache
 def confirm_unblock_user():
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
     try: 
         user_pk = request.args.get("key", "")
         username = request.args.get("username", "")
@@ -1924,6 +1938,9 @@ def confirm_unblock_user():
 @app.route("/confirm_user_cancel", methods=["GET"])
 @x.no_cache
 def confirm_user_cancel():
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
     try: 
         return f"""
         <browser mix-update="#block_confirm"></browser>
@@ -1941,11 +1958,10 @@ def confirm_user_cancel():
 #########################      
 @app.post("/api-block-user")
 def block_user():
-    try:
-        if not x.validate_admin_logged() :
-            session.clear()
-            return redirect(url_for("view_index"))
-        
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
+    try:        
         user_pk = request.args.get("key", "")
 
         db, cursor = x.db()
@@ -1964,7 +1980,7 @@ def block_user():
         new_input = render_template("___button_unblock_user.html", user=user)
         
         email_user_blocked = render_template("_email_user_blocked.html", lan=x.default_language)
-        # ic(email_verify_account)
+        
         x.send_email(user["user_email"], f"{x.lans('account_has_been').capitalize()} {x.lans('blocked')}", email_user_blocked) 
        
         toast_ok = render_template("___toast_ok.html", message=x.lans('email_sent_success').capitalize())
@@ -1992,10 +2008,10 @@ def block_user():
 #########################      
 @app.post("/api-unblock-user")
 def unblock_user():
+    if not x.validate_admin_logged() :
+        session.clear()
+        return redirect(url_for("view_index"))
     try:
-        if not x.validate_admin_logged() :
-            session.clear()
-            return redirect(url_for("view_index"))
         
         user_pk = request.args.get("key", "")
 
