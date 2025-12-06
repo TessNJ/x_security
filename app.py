@@ -91,7 +91,7 @@ def login(lan = "english"):
                 raise Exception(x.lans('user_not_verified').capitalize(), 400)
             
             if user["user_deleted_at"] != 0 :
-                raise Exception(x.lans('user_deactivated"').capitalize(), 400)
+                raise Exception(x.lans('user_deactivated').capitalize(), 400)
 
             user.pop("user_password")
             user["user_language"] = x.default_language
@@ -151,6 +151,10 @@ def signup(lan = "english"):
             user_password = x.validate_user_password()
             user_username = x.validate_user_username()
             user_first_name = x.validate_user_first_name()
+            x.validate_user_password_confirm(user_password)
+
+            # if not user_password_confirm : Exception(x.lans('user_not_found').capitalize(), 400)
+            # if not user_password_confirm : Exception("password doesnt match", 400)
 
             user_pk = uuid.uuid4().hex
             user_last_name = ""
@@ -161,15 +165,16 @@ def signup(lan = "english"):
             user_updated_at = 0
             user_deleted_at = 0
             user_is_blocked = 0
+            user_total_followers = 0
 
             user_hashed_password = generate_password_hash(user_password)
 
 
             # Connect to the database
-            q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             db, cursor = x.db()
             cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username,
-            user_first_name, user_last_name, user_avatar_path, user_password_reset, user_verification_key, user_verified_at, user_updated_at, user_deleted_at, user_is_blocked))
+            user_first_name, user_last_name, user_avatar_path, user_total_followers, user_password_reset, user_verification_key, user_verified_at, user_updated_at, user_deleted_at, user_is_blocked))
             db.commit()
 
             # send verification email
@@ -204,7 +209,6 @@ def signup(lan = "english"):
 @app.route("/verify-account", methods=["GET"])
 @x.no_cache
 def verify_account():
-    if not x.validate_user_logged() : return x.redirect_index_flask()
     try:
         user_verification_key = x.validate_uuid4_without_dashes(request.args.get("key", ""))
         user_verified_at = int(time.time())
@@ -332,9 +336,11 @@ def change_password(lan = "english"):
 
     if request.method == "POST":
         try:
-            user_new_password = x.validate_user_password()
-            
             user_password_reset = x.validate_uuid4_without_dashes(request.args.get("key", ""))
+
+            user_new_password = x.validate_user_password()
+            x.validate_user_password_confirm(user_new_password)
+            
             user_hashed_password = generate_password_hash(user_new_password)
 
             db, cursor = x.db()
@@ -439,7 +445,9 @@ def home_comp():
         # ic(tweets)
 
         html = render_template("_home_comp.html", tweets=tweets)
-        return f"""<mixhtml mix-update="main">{ html }</mixhtml>"""
+        return f"""
+            <mixhtml mix-update="main">{ html }</mixhtml>
+            <browser mix-remove="#search_results"></browser>"""
     except Exception as ex:
         ic(ex)
 
@@ -469,7 +477,10 @@ def profile():
 
         lan = session["user"]["user_language"]
         profile_html = render_template("_profile.html", x=x, user=user, lan=lan)
-        return f"""<browser mix-update="main">{ profile_html }</browser>"""
+        return f"""
+            <browser mix-update="main">{ profile_html }</browser>
+            <browser mix-remove="#search_results"></browser>
+            """
     except Exception as ex:
         ic(ex)
         if ex.args[1] == 400:
@@ -1217,7 +1228,10 @@ def following():
         user_all_following = cursor.fetchall()
 
         following_html = render_template("_following.html", user_all_following=user_all_following)
-        return f"""<mixhtml mix-update="main">{ following_html }</mixhtml>"""
+        return f"""
+            <mixhtml mix-update="main">{ following_html }</mixhtml>
+            <browser mix-remove="#search_results"></browser>
+            """
     except Exception as ex:
         ic(ex)
 
@@ -1240,10 +1254,12 @@ def api_search():
     try:
         user = session.get("user", "")
         search_for = request.form.get("search_for", "")
-        if not search_for:
+
+        if not search_for or len(search_for) < 2:
             return """
             <browser mix-remove="#search_results"></browser>
             """
+        
         part_of_query = f"%{search_for}%"
         
         db, cursor = x.db()

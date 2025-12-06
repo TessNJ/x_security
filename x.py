@@ -111,9 +111,9 @@ def validate_user_password():
     return user_password
 
 ##############################
-def validate_user_password_confirm():
-    user_password = request.form.get("user_password_confirm", "").strip()
-    if not re.match(REGEX_USER_PASSWORD, user_password): raise Exception(lans('twitter_password').capitalize(), 400)
+def validate_user_password_confirm(user_password=""):
+    user_password_confirm = request.form.get("user_password_confirm", "").strip()
+    if not re.match(user_password, user_password_confirm): raise Exception(lans('password_not_match').capitalize(), 400)
     return user_password
 
 ##############################

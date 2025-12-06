@@ -119,6 +119,11 @@
         "danish": "fællesskaber",
         "spanish": "communidades"
     },
+    "confirm_password": {
+        "english": "confirm password",
+        "danish": "bekræft kodeordet",
+        "spanish": "confirmar Contraseña"
+    },
     "control_panel": {
         "english": "control panel",
         "danish": "kontrolpanel",
@@ -428,6 +433,11 @@
         "english": "password",
         "danish": "kodeord",
         "spanish": "clave"
+    },
+    "password_not_match": {
+        "english": "password doesnt match",
+        "danish": "adgangskoden stemmer ikke overens",
+        "spanish": "la contraseña no coincide"
     },
     "password_recovery": {
         "english": "password recovery",

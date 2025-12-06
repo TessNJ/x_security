@@ -71,6 +71,12 @@
               </label>              
               <input name="user_password" id="password" type="password" mix-check="{{ x.REGEX_USER_PASSWORD }}">
             </div>
+            <div>
+              <label for="user_password_confirm">
+                <span>{{ x.lans("confirm_password").capitalize() }}</span> - {{ x.USER_PASSWORD_MIN }} {{ x.lans("to") }} {{ x.USER_PASSWORD_MAX }} {{ x.lans("characters") }}
+              </label>              
+              <input name="user_password_confirm" id="user_password_confirm" type="password" mix-check="{{ x.REGEX_USER_PASSWORD }}">
+            </div>
             <button class="x-dialog__btn" 
             mix-default="{{ x.lans('sign_up').capitalize() }}" 
             mix-await="{{ x.lans('signing_up').capitalize() }}...">
