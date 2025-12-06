@@ -437,15 +437,15 @@ def home_comp():
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
         cursor.execute(q)
         tweets = cursor.fetchall()
-        # ic(tweets)
         
         for tweet in tweets:
             q="SELECT EXISTS(SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s) AS liked"
             cursor.execute(q, (user["user_pk"], tweet["post_pk"]))
             tweet["liked"] = bool(cursor.fetchone()["liked"])
-        # ic(tweets)
 
-        html = render_template("_home_comp.html", tweets=tweets)
+        next_page = 2
+
+        html = render_template("_home_comp.html", tweets=tweets, next_page = next_page)
         return f"""
             <mixhtml mix-update="main">{ html }</mixhtml>
             <browser mix-remove="#search_results"></browser>"""
@@ -608,15 +608,25 @@ def delete_user() :
 
         q="UPDATE posts SET post_deleted_at = %s WHERE post_user_fk = %s"
         cursor.execute(q, (user_deleted_at, user_pk))
-        
-        q="UPDATE comments SET comment_deleted_at = %s WHERE comment_user_fk = %s"
-        cursor.execute(q, (user_deleted_at, user_pk))
 
         q="DELETE FROM follows WHERE follower_fk = %s"
         cursor.execute(q, (user_pk,))
         
         q="DELETE FROM likes WHERE liker_user_fk = %s"
         cursor.execute(q, (user_pk,))
+        
+        q="UPDATE comments SET comment_deleted_at = %s WHERE comment_user_fk = %s"
+        cursor.execute(q, (user_deleted_at, user_pk))
+
+        # Update post total comments - PA
+        # q="SELECT * FROM comments WHERE comment_user_fk = %s"
+        # cursor.execute(q, (user_pk,))
+        # all_comments = cursor.fetchall()
+
+        # for comment in all_comments:
+        #     q="UPDATE posts SET post_total_comments = post_total_comments-1 WHERE post_pk = %s"
+        #     cursor.execute(q, (comment["post_fk"]))
+
         db.commit()
 
         email_user_deleted = render_template("_email_user_deleted.html", link=app.config['LINK_BASE'])
@@ -1141,6 +1151,11 @@ def create_follow():
         cursor.execute(q, (user_followed, user_follower["user_pk"], follow_created_at))
         db.commit()
 
+        # Update total follow amount - PA
+        # q="UPDATE users SET user_total_followers=user_total_followers+1 WHERE user_pk = %s"        
+        # cursor.execute(q, (user_followed,))
+        # db.commit()
+
         ### Send data ###
         suggestion = {}
         suggestion["user_pk"] = user_followed
@@ -1193,6 +1208,11 @@ def remove_follow():
         q = "DELETE FROM follows WHERE followed_fk = %s AND follower_fk = %s"
         cursor.execute(q, (user_followed, user_follower["user_pk"]))
         db.commit()
+
+        # Update total follow amount - PA
+        # q="UPDATE users SET user_total_followers=user_total_followers-1 WHERE user_pk = %s"        
+        # cursor.execute(q, (user_followed,))
+        # db.commit()
 
 
         suggestion = {}
@@ -1326,6 +1346,11 @@ def create_like():
         cursor.execute(q, (post_liked_pk, like_user_fk["user_pk"], like_created_at))
         db.commit()
 
+        # Update total likes amount - PA
+        # q="UPDATE posts SET post_total_likes=post_total_likes+1 WHERE post_pk = %s"        
+        # cursor.execute(q, (post["post_pk"],))
+        # db.commit()
+
         post["liked"] = bool(True)
 
         # ### Send data ###
@@ -1387,7 +1412,11 @@ def remove_like():
         q = "DELETE FROM likes WHERE liked_post_fk = %s AND liker_user_fk = %s"
         cursor.execute(q, (post_liked_pk, like_user_fk["user_pk"]))
 
-        ### update total likes ###
+        # Update total likes amount - PA
+        # q="UPDATE posts SET post_total_likes=post_total_likes-1 WHERE post_pk = %s"        
+        # cursor.execute(q, (post["post_pk"],))
+        # db.commit()
+
         post_total_likes = post["post_total_likes"]-1
 
         db.commit()
@@ -1551,6 +1580,7 @@ def admin_posts():
         try:
             
             db, cursor = x.db()
+            # q="SELECT * FROM users JOIN posts ON user_pk = post_user_fk  ORDER BY post_created_at DESC LIMIT 11 OFFSET %s"
             q="CALL get_posts(%s)"
             cursor.execute(q,(0,))
             all_posts = cursor.fetchall()
@@ -1588,6 +1618,7 @@ def api_get_tweets_admin():
         ic(next_page)
         db, cursor = x.db()
         
+        # q="SELECT * FROM users JOIN posts ON user_pk = post_user_fk  ORDER BY post_created_at DESC LIMIT 11 OFFSET %s"
         q="CALL get_posts(%s)"
         cursor.execute(q,(10*next_page,))
         tweets = cursor.fetchall()
@@ -1598,7 +1629,6 @@ def api_get_tweets_admin():
             html_tweet = render_template("_tweet_admin.html", tweet = tweet)
             container = container + html_tweet
 
-        # ic(container)
         if len(tweets) == 11:
             new_hyperlink = render_template("___show_more_posts_admin.html", next_page=next_page+1)
         else :
@@ -1731,7 +1761,7 @@ def block_post():
         post_image = tweet["post_image_path"]
 
         email_post_blocked = render_template("_email_post_blocked.html", tweet=tweet, lan=x.default_language, link=app.config['LINK_BASE'])
-        # ic(email_verify_account)
+        
         x.send_email_post(tweet["user_email"], f"{x.lans('a_post_has_been').capitalize()} {x.lans('blocked')}", email_post_blocked, post_image) 
        
         toast_ok = render_template("___toast_ok.html", message=x.lans('email_sent_success').capitalize())
@@ -1783,7 +1813,7 @@ def unblock_post():
         post_image = tweet["post_image_path"]
 
         email_post_unblocked = render_template("_email_post_unblocked.html", tweet=tweet, lan=x.default_language, link=app.config['LINK_BASE'])
-        # ic(email_verify_account)
+        
         x.send_email_post(tweet["user_email"], f"{x.lans('a_post_has_been').capitalize()} {x.lans('unblocked')}", email_post_unblocked, post_image) 
        
         toast_ok = render_template("___toast_ok.html", message=x.lans('email_sent_success').capitalize())
@@ -1818,6 +1848,8 @@ def admin_user():
         return redirect(url_for("view_index"))
     try:
         db, cursor = x.db()
+
+        # q="SELECT * FROM users ORDER BY user_username ASC LIMIT 11 OFFSET %s"
         q="CALL get_users(%s)"
         cursor.execute(q,(0,))
         all_users = cursor.fetchall()
@@ -1855,6 +1887,7 @@ def api_get_users_admin():
         ic(next_page)
         db, cursor = x.db()
         
+        # q="SELECT * FROM users ORDER BY user_username ASC LIMIT 11 OFFSET %s"
         q="CALL get_users(%s)"
         cursor.execute(q,(10*next_page,))
         users = cursor.fetchall()
@@ -1865,7 +1898,6 @@ def api_get_users_admin():
             html_user = render_template("_user_admin.html", user=user)
             container = container + html_user
 
-        # ic(container)
         if len(users) == 11:
             new_hyperlink = render_template("___show_more_users_admin.html", next_page=next_page+1)
         else :
@@ -2047,7 +2079,7 @@ def unblock_user():
         new_input = render_template("___button_block_user.html", user=user)
         
         email_user_unblocked = render_template("_email_user_unblocked.html", lan=x.default_language, link=app.config['LINK_BASE'])
-        # ic(email_verify_account)
+        
         x.send_email(user["user_email"], f"{x.lans('account_has_been').capitalize()} {x.lans('unblocked')}", email_user_unblocked) 
        
         toast_ok = render_template("___toast_ok.html", message=x.lans('email_sent_success').capitalize())
