@@ -21,9 +21,7 @@
                     </span>
                 </span>
                 
-                {% if tweet.user_username != session["user"]["user_username"]%}
-                <span class="action"><i class="fa-solid fa-retweet"></i> 2</span>
-                {%endif%}
+                <span class="action" style="pointer-events: none;"><i class="fa-solid fa-retweet"></i> 2</span>
 
                 {% if tweet.user_username != session["user"]["user_username"]%}
                 <span class="d-flex flex-row a-items-center">
