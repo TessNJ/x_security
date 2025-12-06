@@ -4,7 +4,7 @@
 
 <div>
     <img id="user_avatar"
-        src="{{ url_for('static', filename='uploads/'~(session['user_avatar_path'] if session['user_avatar_path'] else 'default.jpg')) }}"
+        src="{{ url_for('static', filename='uploads/'~(session['user']['user_avatar_path'] if session['user']['user_avatar_path'] else 'default.jpg')) }}"
         class="w-8 h-8 rounded-full" alt="{{x.lans('profile_picture').capitalize()}}">
 </div>
 <form class="x-dialog__form" action="{{ url_for('api_update_profile') }}" mix-post autocomplete="off">
@@ -37,6 +37,12 @@
         <input name="user_first_name" id="user_first_name" type="text" mix-check="{{ x.REGEX_USER_USERNAME }}"
             value="{{ user.user_first_name }}">
     </div>
+    <div>
+        <label for="user_last_name">
+        <span>{{ x.lans('last_name').capitalize() }}</span> - {{ x.USER_LAST_NAME_MIN }} {{ x.lans('to') }} {{ x.USER_LAST_NAME_MAX }} {{ x.lans('characters') }}
+        </label>
+        <input name="user_last_name" id="user_last_name" type="text" mix-check="{{ x.REGEX_USER_LAST_NAME }}" value="{{ user.user_last_name }}">
+    </div>   
     <button class="x-dialog__btn" mix-default="{{x.lans('update_profile').capitalize()}}" mix-await="{{x.lans('updating_profile').capitalize()}} ...">
         {{x.lans('update_profile').capitalize()}}
     </button>

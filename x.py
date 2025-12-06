@@ -100,6 +100,16 @@ def validate_user_first_name():
     if not re.match(REGEX_USER_FIRST_NAME, user_first_name): raise Exception(error, 400)
     return user_first_name
 
+##############################
+USER_LAST_NAME_MIN = 0
+USER_LAST_NAME_MAX = 20
+REGEX_USER_LAST_NAME = f"^.{{{USER_LAST_NAME_MIN},{USER_LAST_NAME_MAX}}}$"
+def validate_user_last_name():
+    user_last_name = request.form.get("user_last_name", "").strip()
+    error = f"{lans('last_name').capitalize()}: {USER_LAST_NAME_MIN} {lans('to')} {USER_LAST_NAME_MAX} {lans('characters')}"
+    if not re.match(REGEX_USER_LAST_NAME, user_last_name): raise Exception(error, 400)
+    return user_last_name
+
 
 ##############################
 USER_PASSWORD_MIN = 6

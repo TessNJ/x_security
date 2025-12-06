@@ -823,5 +823,10 @@
         "english": "you are following",
         "danish": "du følger",
         "spanish": "estas siguiendo"
+    },
+    "verify_email_sent": {
+        "english": "a verification email has been sent",
+        "danish": "en bekræftelsesmail er blevet sendt",
+        "spanish": "se ha enviado un correo electrónico de verificación"
     }
 }

@@ -147,18 +147,16 @@ def signup(lan = "english"):
 
     if request.method == "POST":
         try:
-            # Validate
+            # Validate form information
             user_email = x.validate_user_email()
             user_password = x.validate_user_password()
             user_username = x.validate_user_username()
             user_first_name = x.validate_user_first_name()
+            user_last_name = x.validate_user_last_name()
             x.validate_user_password_confirm(user_password)
 
-            # if not user_password_confirm : Exception(x.lans('user_not_found').capitalize(), 400)
-            # if not user_password_confirm : Exception("password doesnt match", 400)
-
+            # Set default values
             user_pk = uuid.uuid4().hex
-            user_last_name = ""
             user_avatar_path = "default.jpg"
             user_password_reset = ""
             user_verification_key = uuid.uuid4().hex
@@ -168,8 +166,8 @@ def signup(lan = "english"):
             user_is_blocked = 0
             user_total_followers = 0
 
+            # Secure password
             user_hashed_password = generate_password_hash(user_password)
-
 
             # Connect to the database
             q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
@@ -181,6 +179,8 @@ def signup(lan = "english"):
             # send verification email
             email_verify_account = render_template("_email_verify_account.html", user_verification_key=user_verification_key, lan=x.default_language, link=app.config['LINK_BASE'])
             x.send_email(user_email, x.lans("verify_your_account").capitalize(), email_verify_account)
+
+            session["message"] = x.lans('verify_email_sent').capitalize()
 
             return f"""<mixhtml mix-redirect="{ url_for('login') }"></mixhtml>""", 400
         except Exception as ex:
@@ -505,11 +505,16 @@ def api_update_profile():
         user = session.get("user", "")
 
         ######### img
-        uploaded_file = request.files.get('user_avatar_path', "default.jpg")
-        _, ext = os.path.splitext(uploaded_file.filename)
-        new_name = uuid.uuid4().hex + ext
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], new_name)
-        uploaded_file.save(file_path)
+        uploaded_file = request.files.get('user_avatar_path', "")
+        if uploaded_file:
+            _, ext = os.path.splitext(uploaded_file.filename)
+            new_name = uuid.uuid4().hex + ext
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], new_name)
+            uploaded_file.save(file_path)
+        else:
+            new_name = user["user_avatar_path"]
+
+        user_avatar_path = new_name
 
         user_updated_at = int(time.time())
 
@@ -517,11 +522,12 @@ def api_update_profile():
         user_email = x.validate_user_email()
         user_username = x.validate_user_username()
         user_first_name = x.validate_user_first_name()
+        user_last_name = x.validate_user_last_name()
 
         # Connect to the database
-        q = "UPDATE users SET user_email = %s, user_username = %s, user_first_name = %s, user_avatar_path = %s, user_updated_at = %s WHERE user_pk = %s"
+        q = "UPDATE users SET user_email = %s, user_username = %s, user_first_name = %s, user_last_name = %s, user_avatar_path = %s, user_updated_at = %s WHERE user_pk = %s"
         db, cursor = x.db()
-        cursor.execute(q, (user_email, user_username, user_first_name, new_name, user_updated_at, user["user_pk"]))
+        cursor.execute(q, (user_email, user_username, user_first_name, user_last_name, user_avatar_path, user_updated_at, user["user_pk"]))
         db.commit()
 
         q = "SELECT * FROM users WHERE user_pk = %s"
@@ -536,8 +542,8 @@ def api_update_profile():
         toast_ok = render_template("___toast_ok.html", message=x.lans('update_successful').capitalize())
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
-            <browser mix-update="#profile_tag .name">{user_first_name}</browser>
-            <browser mix-update="#profile_tag .handle">{user_username}</browser>
+            <browser mix-update="#profile_tag .name">{user_first_name} {user_last_name}</browser>
+            <browser mix-update="#profile_tag .handle">@{user_username}</browser>
             <browser mix-replace="#profile_tag img">
             <img src="/static/uploads/{new_name}" alt="Profile">
             </browser>
