@@ -609,26 +609,28 @@ def delete_user() :
         q="UPDATE posts SET post_deleted_at = %s WHERE post_user_fk = %s"
         cursor.execute(q, (user_deleted_at, user_pk))
 
-        # Follow updates - Comments for PA
-        # q="SELECT * FROM follows WHERE follower_fk = %s"
-        # cursor.execute(q, (user_pk,))
-        # all_follows = cursor.fetchall()
+        # Follow updates
+        if x.python_domain :
+            q="SELECT * FROM follows WHERE follower_fk = %s"
+            cursor.execute(q, (user_pk,))
+            all_follows = cursor.fetchall()
 
-        # for follow in all_follows:
-        #     q="UPDATE users SET user_total_followers = user_total_followers-1 WHERE user_pk = %s"
-        #     cursor.execute(q, (follow["followed_fk"],))
+            for follow in all_follows:
+                q="UPDATE users SET user_total_followers = user_total_followers-1 WHERE user_pk = %s"
+                cursor.execute(q, (follow["followed_fk"],))
         
         q="DELETE FROM follows WHERE follower_fk = %s"
         cursor.execute(q, (user_pk,))
 
-        # Likes updates - Comments for PA
-        # q="SELECT * FROM likes WHERE liker_user_fk = %s"
-        # cursor.execute(q, (user_pk,))
-        # all_likes = cursor.fetchall()
+        # Likes updates 
+        if x.python_domain :
+            q="SELECT * FROM likes WHERE liker_user_fk = %s"
+            cursor.execute(q, (user_pk,))
+            all_likes = cursor.fetchall()
 
-        # for like in all_likes:
-        #     q="UPDATE posts SET post_total_likes = post_total_likes-1 WHERE post_pk = %s"
-        #     cursor.execute(q, (like["liked_post_fk"],))
+            for like in all_likes:
+                q="UPDATE posts SET post_total_likes = post_total_likes-1 WHERE post_pk = %s"
+                cursor.execute(q, (like["liked_post_fk"],))
         
         q="DELETE FROM likes WHERE liker_user_fk = %s"
         cursor.execute(q, (user_pk,))
@@ -1167,12 +1169,13 @@ def create_follow():
         follow_created_at = int(time.time())
         q = "INSERT INTO follows VALUES (%s, %s, %s)"
         cursor.execute(q, (user_followed, user_follower["user_pk"], follow_created_at))
-        db.commit()
 
-        # Update total follow amount - PA
-        # q="UPDATE users SET user_total_followers=user_total_followers+1 WHERE user_pk = %s"        
-        # cursor.execute(q, (user_followed,))
-        # db.commit()
+        # Update total follow amount
+        if x.python_domain :
+            q="UPDATE users SET user_total_followers=user_total_followers+1 WHERE user_pk = %s"        
+            cursor.execute(q, (user_followed,))
+        
+        db.commit()
 
         ### Send data ###
         suggestion = {}
@@ -1225,13 +1228,13 @@ def remove_follow():
         # Delete follow
         q = "DELETE FROM follows WHERE followed_fk = %s AND follower_fk = %s"
         cursor.execute(q, (user_followed, user_follower["user_pk"]))
-        db.commit()
 
         # Update total follow amount - PA
-        # q="UPDATE users SET user_total_followers=user_total_followers-1 WHERE user_pk = %s"        
-        # cursor.execute(q, (user_followed,))
-        # db.commit()
+        if x.python_domain :
+            q="UPDATE users SET user_total_followers=user_total_followers-1 WHERE user_pk = %s"        
+            cursor.execute(q, (user_followed,))
 
+        db.commit()
 
         suggestion = {}
         suggestion["user_pk"] = user_followed
@@ -1363,9 +1366,10 @@ def create_like():
         q = "INSERT INTO likes VALUES (%s, %s, %s)"
         cursor.execute(q, (post_liked_pk, like_user_fk["user_pk"], like_created_at))
 
-        # Update total likes amount - PA
-        # q="UPDATE posts SET post_total_likes=post_total_likes+1 WHERE post_pk = %s"        
-        # cursor.execute(q, (post["post_pk"],))
+        # Update total likes amount 
+        if x.python_domain :
+            q="UPDATE posts SET post_total_likes=post_total_likes+1 WHERE post_pk = %s"        
+            cursor.execute(q, (post["post_pk"],))
 
         db.commit()
 
@@ -1430,10 +1434,11 @@ def remove_like():
         q = "DELETE FROM likes WHERE liked_post_fk = %s AND liker_user_fk = %s"
         cursor.execute(q, (post_liked_pk, like_user_fk["user_pk"]))
 
-        # Update total likes amount - PA
-        # q="UPDATE posts SET post_total_likes=post_total_likes-1 WHERE post_pk = %s"        
-        # cursor.execute(q, (post["post_pk"],))
-        
+        # Update total likes amount
+        if x.python_domain :
+            q="UPDATE posts SET post_total_likes=post_total_likes-1 WHERE post_pk = %s"        
+            cursor.execute(q, (post["post_pk"],))
+            
         db.commit()
 
         post_total_likes = post["post_total_likes"]-1
@@ -1542,7 +1547,7 @@ def get_data_from_sheet():
         with open(path, 'w', encoding='utf-8') as f:
             f.write(json_data)
 
-        # return "ok"
+
         toast_ok = render_template("___toast_ok.html", message=x.lans('dictionary_updated').capitalize())
 
         return f"""
@@ -1597,8 +1602,11 @@ def admin_posts():
         try:
             
             db, cursor = x.db()
-            # q="SELECT * FROM users JOIN posts ON user_pk = post_user_fk  ORDER BY post_created_at DESC LIMIT 11 OFFSET %s"
-            q="CALL get_posts(%s)"
+            if x.python_domain :
+                q="SELECT * FROM users JOIN posts ON user_pk = post_user_fk  ORDER BY post_created_at DESC LIMIT 11 OFFSET %s"
+            else:
+                q="CALL get_posts(%s)"
+
             cursor.execute(q,(0,))
             all_posts = cursor.fetchall()
 
@@ -1635,11 +1643,14 @@ def api_get_tweets_admin():
         ic(next_page)
         db, cursor = x.db()
         
-        # q="SELECT * FROM users JOIN posts ON user_pk = post_user_fk  ORDER BY post_created_at DESC LIMIT 11 OFFSET %s"
-        q="CALL get_posts(%s)"
+        if x.python_domain :
+            q="SELECT * FROM users JOIN posts ON user_pk = post_user_fk  ORDER BY post_created_at DESC LIMIT 11 OFFSET %s"
+        else:
+            q="CALL get_posts(%s)"
+        
         cursor.execute(q,(10*next_page,))
         tweets = cursor.fetchall()
-        ic(len(tweets))
+        
         container = ""
 
         for tweet in tweets[:10]:
@@ -1866,8 +1877,11 @@ def admin_user():
     try:
         db, cursor = x.db()
 
-        # q="SELECT * FROM users ORDER BY user_username ASC LIMIT 11 OFFSET %s"
-        q="CALL get_users(%s)"
+        if x.python_domain :
+            q="SELECT * FROM users ORDER BY user_username ASC LIMIT 11 OFFSET %s"
+        else:
+            q="CALL get_users(%s)"
+
         cursor.execute(q,(0,))
         all_users = cursor.fetchall()
 
@@ -1904,11 +1918,14 @@ def api_get_users_admin():
         ic(next_page)
         db, cursor = x.db()
         
-        # q="SELECT * FROM users ORDER BY user_username ASC LIMIT 11 OFFSET %s"
-        q="CALL get_users(%s)"
+        if x.python_domain :
+            q="SELECT * FROM users ORDER BY user_username ASC LIMIT 11 OFFSET %s"
+        else:
+            q="CALL get_users(%s)"
+        
         cursor.execute(q,(10*next_page,))
         users = cursor.fetchall()
-        ic(users)
+        
         container = ""
 
         for user in users[:10]:
