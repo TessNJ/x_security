@@ -13,7 +13,7 @@
     <script src="https://unpkg.com/mojocss"></script>
 
     <title>
-        {{x.lans("fresh_news").capitalize()}}     
+        {{x.lans('fresh_news').capitalize()}}     
     </title>
 </head>
 
@@ -98,7 +98,7 @@
             </form>
 
             <div class="border-1 border-c-gray:+50 rounded-md pa-3">
-                <h2 class="text-120 text-c-black text-w-bold">{{x.lans('what_is_happening').capitalize()}}</h2>
+                <h2 class="text-120 text-c-black text-w-bold">{{x.lans('what_is_happening').capitalize()}}?</h2>
                 <div class="">
                     {% for trend in trends: %}
                     {% include "_trend.html" %}
@@ -109,7 +109,7 @@
             </div>
 
             <div class="mt-2 border-c-gray:+50 border-1 rounded-md pa-2">
-                <h2 class="text-120 text-w-bold">{{x.lans('who_to_follow').capitalize()}}</h2>
+                <h2 class="text-120 text-w-bold">{{x.lans('who_to_follow').capitalize()}}?</h2>
                 <div class="">
 
                     {% for suggestion in suggestions: %}

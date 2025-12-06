@@ -33,6 +33,7 @@ app.config['UPLOAD_FOLDER'] = upload_folder
 app.config['ADMIN_EMAIL'] = os.getenv('ADMIN_EMAIL')
 app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
 app.config['GOOGLE_SPREADSHEET_KEY'] = os.getenv('GOOGLE_SPREADSHEET_KEY')
+app.config['LINK_BASE'] = os.getenv('LINK_BASE')
 
 
 ##############################
@@ -178,7 +179,7 @@ def signup(lan = "english"):
             db.commit()
 
             # send verification email
-            email_verify_account = render_template("_email_verify_account.html", user_verification_key=user_verification_key, lan=x.default_language)
+            email_verify_account = render_template("_email_verify_account.html", user_verification_key=user_verification_key, lan=x.default_language, link=app.config['LINK_BASE'])
             x.send_email(user_email, x.lans("verify_your_account").capitalize(), email_verify_account)
 
             return f"""<mixhtml mix-redirect="{ url_for('login') }"></mixhtml>""", 400
@@ -271,7 +272,7 @@ def request_password(lan="english"):
             cursor.execute(q, (user_password_reset, user_email))
             db.commit()
             
-            email_forgot_password = render_template("_email_forgot_password.html", user_password_reset=user_password_reset, lan=x.default_language)
+            email_forgot_password = render_template("_email_forgot_password.html", user_password_reset=user_password_reset, lan=x.default_language, link=app.config['LINK_BASE'])
             
             x.send_email(user_email, x.lans('set_new_password').capitalize(), email_forgot_password)
 
@@ -600,7 +601,7 @@ def delete_user() :
         cursor.execute(q, (user_deleted_at, user_pk))
         db.commit()
 
-        email_user_deleted = render_template("_email_user_deleted.html", lan=x.default_language, x=x)
+        email_user_deleted = render_template("_email_user_deleted.html", lan=x.default_language, link=app.config['LINK_BASE'])
         x.send_email(user_email, x.lans('email_account_is_deleted').capitalize(), email_user_deleted)
 
         q="UPDATE posts SET post_deleted_at = %s WHERE post_user_fk = %s"
@@ -1729,7 +1730,7 @@ def block_post():
 
         post_image = tweet["post_image_path"]
 
-        email_post_blocked = render_template("_email_post_blocked.html", tweet=tweet, lan=x.default_language)
+        email_post_blocked = render_template("_email_post_blocked.html", tweet=tweet, lan=x.default_language, link=app.config['LINK_BASE'])
         # ic(email_verify_account)
         x.send_email_post(tweet["user_email"], f"{x.lans('a_post_has_been').capitalize()} {x.lans('blocked')}", email_post_blocked, post_image) 
        
@@ -1781,7 +1782,7 @@ def unblock_post():
         new_input = render_template("___button_block_post.html", tweet=tweet)
         post_image = tweet["post_image_path"]
 
-        email_post_unblocked = render_template("_email_post_unblocked.html", tweet=tweet, lan=x.default_language)
+        email_post_unblocked = render_template("_email_post_unblocked.html", tweet=tweet, lan=x.default_language, link=app.config['LINK_BASE'])
         # ic(email_verify_account)
         x.send_email_post(tweet["user_email"], f"{x.lans('a_post_has_been').capitalize()} {x.lans('unblocked')}", email_post_unblocked, post_image) 
        
@@ -1994,7 +1995,7 @@ def block_user():
 
         new_input = render_template("___button_unblock_user.html", user=user)
         
-        email_user_blocked = render_template("_email_user_blocked.html", lan=x.default_language)
+        email_user_blocked = render_template("_email_user_blocked.html", lan=x.default_language, link=app.config['LINK_BASE'])
         
         x.send_email(user["user_email"], f"{x.lans('account_has_been').capitalize()} {x.lans('blocked')}", email_user_blocked) 
        
@@ -2045,7 +2046,7 @@ def unblock_user():
 
         new_input = render_template("___button_block_user.html", user=user)
         
-        email_user_unblocked = render_template("_email_user_unblocked.html", lan=x.default_language)
+        email_user_unblocked = render_template("_email_user_unblocked.html", lan=x.default_language, link=app.config['LINK_BASE'])
         # ic(email_verify_account)
         x.send_email(user["user_email"], f"{x.lans('account_has_been').capitalize()} {x.lans('unblocked')}", email_user_unblocked) 
        

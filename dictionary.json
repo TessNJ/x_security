@@ -162,7 +162,7 @@
     "dont_have_an_account": {
         "english": "don't have an account",
         "danish": "har du ikke en konto",
-        "spanish": "no tienes cuenta"
+        "spanish": "¿No tienes cuenta"
     },
     "email": {
         "english": "email",
@@ -292,7 +292,7 @@
     "forgot_password": {
         "english": "forgotten your password",
         "danish": "har du glemt dit kodeord",
-        "spanish": "olvidaste tu clave"
+        "spanish": "¿Olvidaste tu clave"
     },
     "fresh_news": {
         "english": "fresh news",
@@ -817,7 +817,7 @@
     "who_to_follow": {
         "english": "who to follow",
         "danish": "hvem man kan følge",
-        "spanish": "who to follow"
+        "spanish": "¿A quién seguir"
     },
     "you_are_following": {
         "english": "you are following",

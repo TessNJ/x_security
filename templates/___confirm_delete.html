@@ -1,6 +1,6 @@
 <div>
     <div class="delete_user" >
-        {{x.lans('delete_account_confirm').capitalize()}}
+        {{x.lans('delete_account_confirm').capitalize()}}?
         <div>
             <a mix-post href="{{url_for('confirm_delete')}}">{{x.lans('cancel').capitalize()}}</a>
             <a href="{{url_for ('delete_user')}}">{{x.lans('delete').capitalize()}}</a>

@@ -10,7 +10,7 @@
 <form class="x-dialog__form" action="{{ url_for('api_update_profile') }}" mix-post autocomplete="off">
     <div>
         <label for="user_avatar_path">
-            <span> {{x.lans('profile').capitalize()}}</span>
+            <span> {{x.lans('profile_picture').capitalize()}}</span>
         </label>
         <input name="user_avatar_path" id="user_avatar_path" type="file" accept="image/*" onchange="show_preview()">
     </div>
