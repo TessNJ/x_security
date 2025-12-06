@@ -44,16 +44,17 @@ def _____USER_____(): pass
 ##############################
 ##############################
 
-@app.get("/")
-def view_index():
-    return render_template("index.html")
-
-##############################
 @app.context_processor
 def global_variables():
     return dict (
         x = x
     )
+
+##############################
+@app.get("/")
+def view_index():
+    return render_template("index.html")
+
 
 ##############################
 @app.route("/login", methods=["GET", "POST"])
@@ -143,7 +144,7 @@ def signup(lan = "english"):
     x.default_language = lan
 
     if request.method == "GET":
-        return render_template("signup.html", x=x, lan=x.default_language)
+        return render_template("signup.html", lan=x.default_language)
 
     if request.method == "POST":
         try:
@@ -213,11 +214,14 @@ def verify_account():
     try:
         user_verification_key = x.validate_uuid4_without_dashes(request.args.get("key", ""))
         user_verified_at = int(time.time())
+        
         db, cursor = x.db()
         q = "UPDATE users SET user_verification_key = '', user_verified_at = %s WHERE user_verification_key = %s"
         cursor.execute(q, (user_verified_at, user_verification_key))
         db.commit()
+        
         if cursor.rowcount != 1: raise Exception(x.lans('invalid_key').capitalize(), 400)
+        
         return redirect( url_for('login') )
     except Exception as ex:
         ic(ex)
@@ -246,7 +250,7 @@ def request_password(lan="english"):
     x.default_language = lan
 
     if request.method == "GET":
-        return render_template("request_password.html", lan=x.default_language, x=x)
+        return render_template("request_password.html", lan=x.default_language)
 
     if request.method == "POST":
         try:
@@ -317,7 +321,7 @@ def change_password(lan = "english"):
 
             if not user: raise Exception(x.lans('link_is_invalid').capitalize(), 400)
 
-            return render_template("change_password.html", lan=x.default_language, x=x, user_password_reset=user_password_reset)
+            return render_template("change_password.html", lan=x.default_language, user_password_reset=user_password_reset)
         except Exception as ex:
             ic(ex)
             if "db" in locals(): db.rollback()
@@ -348,6 +352,7 @@ def change_password(lan = "english"):
             q = "UPDATE users SET user_password_reset = '', user_password = %s WHERE user_password_reset = %s"
             cursor.execute(q, (user_hashed_password, user_password_reset))
             db.commit()
+            
             if cursor.rowcount != 1: raise Exception(x.lans('link_is_invalid').capitalize(), 400)
 
             session["message"] = x.lans('updated_password').capitalize()
@@ -377,11 +382,10 @@ def change_password(lan = "english"):
 @app.get("/home")
 @x.no_cache
 # @x.logged
-def home(lan="english"):
+def home():
     if not x.validate_user_logged() : return x.redirect_index_flask()
     try:
         user = session.get("user", "")
-        lan = session["user"]["user_language"]
 
         next_page = 2
 
@@ -407,11 +411,7 @@ def home(lan="english"):
         cursor.execute(q, (user_follower["user_pk"], user_follower["user_pk"],))
         suggestions = cursor.fetchall()
 
-        profileInfo = {"name":user["user_first_name"], "handle":user["user_username"], "path":user["user_avatar_path"]}
-
-        lan = session["user"]["user_language"]
-
-        return render_template("home.html", tweets=tweets, trends=trends, suggestions=suggestions, user=user, lan=lan, x=x, profileInfo=profileInfo, next_page=next_page)
+        return render_template("home.html", tweets=tweets, trends=trends, suggestions=suggestions, next_page=next_page)
     except Exception as ex:
         ic(ex)
 
@@ -476,8 +476,8 @@ def profile():
         cursor.execute(q, (user["user_pk"],))
         user = cursor.fetchone()
 
-        lan = session["user"]["user_language"]
-        profile_html = render_template("_profile.html", x=x, user=user, lan=lan)
+        profile_html = render_template("_profile.html", user=user)
+
         return f"""
             <browser mix-update="main">{ profile_html }</browser>
             <browser mix-remove="#search_results"></browser>
@@ -601,14 +601,10 @@ def delete_user() :
         user_email = session["user"]["user_email"]
         user_deleted_at = int(time.time())
 
-        # ic(user_pk)
         db, cursor = x.db()
         q = "UPDATE users SET user_deleted_at = %s WHERE user_pk = %s"
         cursor.execute(q, (user_deleted_at, user_pk))
         db.commit()
-
-        email_user_deleted = render_template("_email_user_deleted.html", lan=x.default_language, link=app.config['LINK_BASE'])
-        x.send_email(user_email, x.lans('email_account_is_deleted').capitalize(), email_user_deleted)
 
         q="UPDATE posts SET post_deleted_at = %s WHERE post_user_fk = %s"
         cursor.execute(q, (user_deleted_at, user_pk))
@@ -622,6 +618,9 @@ def delete_user() :
         q="DELETE FROM likes WHERE liker_user_fk = %s"
         cursor.execute(q, (user_pk,))
         db.commit()
+
+        email_user_deleted = render_template("_email_user_deleted.html", link=app.config['LINK_BASE'])
+        x.send_email(user_email, x.lans('email_account_is_deleted').capitalize(), email_user_deleted)
         
         session.clear()
         return redirect(url_for("login"))
@@ -704,6 +703,7 @@ def api_create_post():
         else:
             post_image_path = ""
 
+        # Set defaults
         post_pk = uuid.uuid4().hex
         post_created_at = int(time.time())
         post_updated_at = 0
@@ -1142,10 +1142,9 @@ def create_follow():
         db.commit()
 
         ### Send data ###
-        q = "SELECT * FROM users WHERE user_pk = %s"
-        cursor.execute(q, (user_followed, ))
-        user_followed_data = cursor.fetchone()
-        new_input = render_template("___button_unfollow.html", suggestion=user_followed_data)
+        suggestion = {}
+        suggestion["user_pk"] = user_followed
+        new_input = render_template("___button_unfollow.html", suggestion=suggestion)
 
         return f"""
             <browser mix-replace="#follow{user_followed}">
@@ -1273,11 +1272,6 @@ def api_search():
         q = "SELECT * FROM users WHERE user_is_blocked = 0 AND user_deleted_at = 0 AND user_username LIKE %s AND user_username != %s"
         cursor.execute(q, (part_of_query, user["user_username"]))
         users = cursor.fetchall()
-
-        # q = "SELECT * FROM follows WHERE follower_fk = %s"
-        # cursor.execute(q, (user["user_pk"],))
-        # following = cursor.fetchall()
-
 
         for search_user in users:
             q="SELECT EXISTS(SELECT * FROM follows WHERE follower_fk = %s AND followed_fk = %s) AS followed"
@@ -1436,7 +1430,7 @@ def admin(lan="english") :
     if lan not in x.allowed_languages: lan = "english"
     x.default_language = lan
     if request.method == "GET":
-        return render_template("admin.html", x=x, lan=lan)
+        return render_template("admin.html", lan=lan)
 
     if request.method == "POST":
         try : 

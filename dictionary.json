@@ -140,8 +140,8 @@
         "spanish": "borrar"
     },
     "delete_account_confirm": {
-        "english": "you are about to delete your account. Are you sure?",
-        "danish": "du er ved at slette din konto. Er du sikker?",
+        "english": "you are about to delete your account. Are you sure",
+        "danish": "du er ved at slette din konto. Er du sikker",
         "spanish": "estás a punto de eliminar tu cuenta. ¿Estás seguro"
     },
     "delete_image": {
@@ -150,8 +150,8 @@
         "spanish": "borrar imagen"
     },
     "delete_post_confirm": {
-        "english": "you are about to delete your post. Are you sure?",
-        "danish": "du er ved at slette dit opslag. Er du sikker?",
+        "english": "you are about to delete your post. Are you sure",
+        "danish": "du er ved at slette dit opslag. Er du sikker",
         "spanish": "estás a punto de eliminar tu publicación. ¿Estás seguro"
     },
     "dictionary_updated": {
@@ -630,9 +630,9 @@
         "spanish": "sistema en mantenimiento"
     },
     "the_world_is_reading": {
-        "english": "the world is reading your post !",
-        "danish": "verden læser dit opslag!",
-        "spanish": "¡El mundo está leyendo tu publicación!"
+        "english": "the world is reading your post",
+        "danish": "verden læser dit opslag",
+        "spanish": "¡El mundo está leyendo tu publicación"
     },
     "this_post_by": {
         "english": "this post by",

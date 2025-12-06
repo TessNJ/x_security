@@ -747,6 +747,19 @@ aside {
   }
 } 
 
+.delete_btn {
+  margin: 0.5rem 0;
+  padding: 0.5rem 1rem;
+  border-radius: 30px;
+  background-color: gray;
+  color: white;
+  width: fit-content;
+}
+
+a.delete_btn {
+  display: block;
+}
+
 .current_language {
   filter: grayscale(1);
 }
