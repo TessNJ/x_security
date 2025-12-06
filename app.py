@@ -609,23 +609,41 @@ def delete_user() :
         q="UPDATE posts SET post_deleted_at = %s WHERE post_user_fk = %s"
         cursor.execute(q, (user_deleted_at, user_pk))
 
+        # Follow updates - Comments for PA
+        # q="SELECT * FROM follows WHERE follower_fk = %s"
+        # cursor.execute(q, (user_pk,))
+        # all_follows = cursor.fetchall()
+
+        # for follow in all_follows:
+        #     q="UPDATE users SET user_total_followers = user_total_followers-1 WHERE user_pk = %s"
+        #     cursor.execute(q, (follow["followed_fk"],))
+        
         q="DELETE FROM follows WHERE follower_fk = %s"
         cursor.execute(q, (user_pk,))
+
+        # Likes updates - Comments for PA
+        # q="SELECT * FROM likes WHERE liker_user_fk = %s"
+        # cursor.execute(q, (user_pk,))
+        # all_likes = cursor.fetchall()
+
+        # for like in all_likes:
+        #     q="UPDATE posts SET post_total_likes = post_total_likes-1 WHERE post_pk = %s"
+        #     cursor.execute(q, (like["liked_post_fk"],))
         
         q="DELETE FROM likes WHERE liker_user_fk = %s"
         cursor.execute(q, (user_pk,))
-        
+
+        # Comments updates 
+        q="SELECT * FROM comments WHERE comment_user_fk = %s"
+        cursor.execute(q, (user_pk,))
+        all_comments = cursor.fetchall()
+
+        for comment in all_comments:
+            q="UPDATE posts SET post_total_comments = post_total_comments-1 WHERE post_pk = %s"
+            cursor.execute(q, (comment["post_fk"],))
+       
         q="UPDATE comments SET comment_deleted_at = %s WHERE comment_user_fk = %s"
         cursor.execute(q, (user_deleted_at, user_pk))
-
-        # Update post total comments - PA
-        # q="SELECT * FROM comments WHERE comment_user_fk = %s"
-        # cursor.execute(q, (user_pk,))
-        # all_comments = cursor.fetchall()
-
-        # for comment in all_comments:
-        #     q="UPDATE posts SET post_total_comments = post_total_comments-1 WHERE post_pk = %s"
-        #     cursor.execute(q, (comment["post_fk"]))
 
         db.commit()
 
@@ -1344,12 +1362,12 @@ def create_like():
         like_created_at = int(time.time())
         q = "INSERT INTO likes VALUES (%s, %s, %s)"
         cursor.execute(q, (post_liked_pk, like_user_fk["user_pk"], like_created_at))
-        db.commit()
 
         # Update total likes amount - PA
         # q="UPDATE posts SET post_total_likes=post_total_likes+1 WHERE post_pk = %s"        
         # cursor.execute(q, (post["post_pk"],))
-        # db.commit()
+
+        db.commit()
 
         post["liked"] = bool(True)
 
@@ -1415,11 +1433,10 @@ def remove_like():
         # Update total likes amount - PA
         # q="UPDATE posts SET post_total_likes=post_total_likes-1 WHERE post_pk = %s"        
         # cursor.execute(q, (post["post_pk"],))
-        # db.commit()
+        
+        db.commit()
 
         post_total_likes = post["post_total_likes"]-1
-
-        db.commit()
         
         ### Send data ###
         post["liked"] = False
