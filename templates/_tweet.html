@@ -36,6 +36,12 @@
                         {{tweet.post_total_likes}}
                     </span>
                 </span>
+                {%else%}
+                <span class="action" style="pointer-events: none;"><i class="fa-solid fa fa-heartbeat"></i> 
+                    <span id="like_amount_{{tweet.post_pk}}">
+                        {{tweet.post_total_likes}}
+                    </span>
+                </span>
                 {%endif%}
 
                 <span class="action"><i class="fa-solid fa-chart-simple"></i> 230</span>
