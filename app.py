@@ -1562,7 +1562,56 @@ def get_data_from_sheet():
 
         toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    
 
+##############################
+@app.get("/8152a9ee-1f86-4a7a-9cd7-2f45b4087694ecxx523f7c-b27f-49b7-9fc1-24baaba82a5x")
+@x.no_cache
+def get_data_from_sheet_button():
+
+    ### This does the same as the previous route, without validation
+    ## For google sheet script 
+
+    try:    
+        url= f"https://docs.google.com/spreadsheets/d/{app.config['GOOGLE_SPREADSHEET_KEY']}/export?format=csv&id={app.config['GOOGLE_SPREADSHEET_KEY']}"
+        res=requests.get(url=url)
+        
+        csv_text = res.content.decode('utf-8')
+        csv_file = io.StringIO(csv_text) # Use StringIO to treat the string as a file
+
+        # Initialize an empty list to store the data
+        data = {}
+
+        # Read the CSV data
+        reader = csv.DictReader(csv_file)
+        ic(reader)
+        # Convert each row into the desired structure
+        for row in reader:
+            item = {
+                    'english': row['english'],
+                    'danish': row['danish'],
+                    'spanish': row['spanish']
+
+            }
+            # Append the dictionary to the list
+            data[row['key']] = (item)
+
+        # Convert the data to JSON
+        json_data = json.dumps(data, ensure_ascii=False, indent=4)
+
+        # Save data to the file
+        path = "/home/TereseNJ/mysite/dictionary.json" if x.python_domain else "dictionary.json"
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(json_data)
+
+
+        return True
+        
+        
+    except Exception as ex:
+        ic(ex)
+
+############3
 
 @app.route("/control_panel", methods=["GET"])
 @x.no_cache
