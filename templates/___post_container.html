@@ -1,12 +1,49 @@
 <form id="post_container" action="{{ url_for('api_create_post') }}" mix-post class="d-flex flex-col w-full ml-2">
     <textarea name="post" placeholder="{{x.lans('what_is_new').capitalize()}}?" 
     class="w-full outline-1 outline-s-solid outline-c-gray:+50 pa-2" mix-check="{{ x.REGEX_POST }}"></textarea>
+    <img id="image_post_create"
+    src="{{ url_for('static', filename='images/default.jpg' ) }}"
+    class="w-80" alt="{{x.lans('profile_picture').capitalize()}}" style="display: none;" class="hide">
+    <button type="button" onclick="remove_image_new_post()" id="button_post_create" class="delete_btn hide" style="display: none;" >{{x.lans('delete_image').capitalize()}}</button>
     <label for="post_image_attach">
         <span>{{x.lans('attach_image').capitalize()}}</span>
     </label>
-    <input name="post_image_attach" id="post_image_attach" type="file" accept="image/png, image/jpeg">
+    <input name="post_image_attach" id="post_image_attach" type="file" accept="image/png, image/jpeg" onchange="show_post_new_preview()">
     <button mix-default="{{x.lans('post').capitalize()}}" mix-await="{{x.lans('posting').capitalize()}} ..." 
     class="w-auto ml-auto mt-2 bg-c-black text-c-white py-2 px-12 rounded-xl">
         {{x.lans('post').capitalize()}}
     </button>
 </form>
+
+<script>
+    const fileInput = document.getElementById('post_image_attach');
+    imagePreview = document.getElementById('image_post_create');
+    const button = document.getElementById('button_post_create');
+    if (imagePreview.classList.contains('hide')) {
+        imagePreview.classList.remove('hide')
+        imagePreview.style.display = 'block';
+        imagePreview.style.visibility = 'visible';
+        button.classList.remove('hide')
+        button.style.display = 'block';
+        button.style.visibility = 'visible';
+    }
+    
+    fileInput.addEventListener('change', function (event) {
+        const file = event.target.files[0]; // Get the first file
+        if (file) {
+            const reader = new FileReader();
+            
+            reader.onload = function (e) {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block'; // Show the image
+                button.style.display = "block"
+            };
+
+            reader.readAsDataURL(file); // Read the file as a data URL
+        } else {
+            imagePreview.style.display = 'none'; // Hide the image if no file selected
+            button.style.display = "none";
+        }
+    });
+</script>
+

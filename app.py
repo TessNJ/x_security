@@ -25,7 +25,7 @@ app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024   # 1 MB
 app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
 
-post_upload_folder = "./static/images"
+post_upload_folder = "/home/TereseNJ/mysite/static/images" if x.python_domain else "./static/images"
 app.config['POST_UPLOAD_FOLDER'] = post_upload_folder
 
 upload_folder = "/home/TereseNJ/mysite/static/uploads" if x.python_domain else "./static/uploads"
@@ -820,6 +820,7 @@ def api_update_post():
     if request.method == "POST":
         try:
             post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
+            user_pk = session["user"]["user_pk"]
             
             db, cursor = x.db()
             q="SELECT * FROM posts WHERE post_pk = %s"
@@ -848,8 +849,8 @@ def api_update_post():
             post_message = x.validate_post(request.form.get("post", ""))
             if not post_message : raise Exception(x.lans('post_couldnt_update').capitalize(), 400)
 
-            q = "UPDATE posts SET post_message = %s, post_image_path = %s, post_updated_at = %s WHERE post_pk = %s"
-            cursor.execute(q, (post_message, image_path, post_updated_at, tweet["post_pk"] ))
+            q = "UPDATE posts SET post_message = %s, post_image_path = %s, post_updated_at = %s WHERE post_pk = %s AND post_user_fk = %s"
+            cursor.execute(q, (post_message, image_path, post_updated_at, tweet["post_pk"], user_pk ))
             db.commit()
             if cursor.rowcount != 1: raise Exception(x.lans('post_couldnt_update').capitalize(), 400)
 
@@ -931,10 +932,11 @@ def api_delete_post():
     if request.method == "GET":
         try:
             post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
+            user_pk = session["user"]["user_pk"]
 
             db, cursor = x.db()
-            q="SELECT * FROM posts WHERE post_pk = %s"
-            cursor.execute(q, (post_pk,))
+            q="SELECT * FROM posts WHERE post_pk = %s AND post_user_fk"
+            cursor.execute(q, (post_pk, user_pk))
             tweet = cursor.fetchone()
 
             confirm_delete = render_template("___confirm_delete_post.html", tweet=tweet)
@@ -1605,7 +1607,7 @@ def get_data_from_sheet_button():
             f.write(json_data)
 
 
-        return True
+        return "OK"
         
         
     except Exception as ex:

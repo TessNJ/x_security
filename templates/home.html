@@ -186,6 +186,40 @@
             imgDeleted.value = "deleted"
         }
     </script>
+    <script>
+        function show_post_new_preview() {
+            const imagePreview = document.getElementById('post_image_attach');
+
+            const file = event.target.files[0]; // Get the first file
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block'; // Show the image
+                };
+
+                reader.readAsDataURL(file); // Read the file as a data URL
+            } else {
+                imagePreview.style.display = 'none'; // Hide the image if no file selected
+            }
+        };
+    </script>
+    <script>
+        function remove_image_new_post(target) {
+            const imagePreview = document.getElementById('image_post_create');
+            const fileInput = document.getElementById('post_image_attach');
+            const button = document.getElementById('button_post_create');
+
+            fileInput.value = null;
+            imagePreview.src = "{{ url_for('static', filename='images/default.jpg' ) }}";
+
+            imagePreview.classList.add('hide');
+            imagePreview.style.display = 'none';
+            button.classList.add('hide');
+            button.style.display = 'none';
+        }
+    </script>
 
 </body>
 
