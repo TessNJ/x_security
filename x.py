@@ -34,7 +34,6 @@ app.config['ADMIN_EMAIL'] = os.getenv('ADMIN_EMAIL')
 app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
 
 allowed_languages = ["english", "danish", "spanish"]
-# google_spread_sheet_key = "17zrH7Akox0wKq4PeYWDqA1vyCq7zLBMvrT78YYhEnbQ"
 default_language = "english"
 
 def lans(key):
@@ -176,29 +175,20 @@ def validate_check_user_username(user_username=""):
 ##############################
 def send_email(to_email, subject, template):
     try:
-        # Create a gmail fullflaskdemomail
-        # Enable (turn on) 2 step verification/factor in the google account manager
-        # Visit: https://myaccount.google.com/apppasswords
-
-        # Email and password of the sender's Gmail account
         sender_email = app.config['GMAIL_EMAIL']
         password = app.config['GMAIL_KEY']
 
-        # Receiver email address
         receiver_email = sender_email
 
-        # Create the email message
         message = MIMEMultipart()
         message["From"] = "X clone"
         message["To"] = to_email
         message["Subject"] = subject
 
-        # Body of the email
         message.attach(MIMEText(template, "html"))
 
-        # Connect to Gmail's SMTP server and send the email
         with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.starttls()  # Upgrade the connection to secure
+            server.starttls()  
             server.login(sender_email, password)
             server.sendmail(sender_email, receiver_email, message.as_string())
 
@@ -213,20 +203,16 @@ def send_email(to_email, subject, template):
 ##############################
 def send_email_post(to_email, subject, template, post_image):
     try:
-        # Email and password of the sender's Gmail account
         sender_email = app.config['GMAIL_EMAIL']
         password = app.config['GMAIL_KEY']
 
-        # Receiver email address
         receiver_email = sender_email
 
-        # Create the email message
         message = MIMEMultipart()
         message["From"] = "X clone"
         message["To"] = to_email
         message["Subject"] = subject
 
-        # Body of the email
         message.attach(MIMEText(template, "html"))
 
 
@@ -242,7 +228,6 @@ def send_email_post(to_email, subject, template, post_image):
             image.add_header('Content-ID', '<post_image>')
             message.attach(image)
 
-        # Connect to Gmail's SMTP server and send the email
         with smtplib.SMTP("smtp.gmail.com", 587) as server:
             server.starttls() 
             server.login(sender_email, password)

@@ -1,9 +1,4 @@
 .env
 Dockerfile
 docker-compose.yml
-send_mail.py
-x.sql
-x(1).sql
-dictionary.py
-x-22-11-2025.sql
-x-04-12-2025.sql
+x_16_04_2026.sql
