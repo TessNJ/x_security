@@ -3,8 +3,8 @@
         <p>{{x.lans('are_you_sure_unblock').capitalize()}} @{{user.user_username}}?</p>
         <p>{{x.lans('user_will_be_notified').capitalize()}}</p>
         <div>
-            <a mix-get href="/confirm_user_cancel?key={{user.user_pk}}">{{x.lans('cancel').capitalize()}}</a>
-            <a mix-post href="/api-unblock-user?key={{user.user_pk}}" mix-default="{{x.lans('unblock').capitalize()}}" 
+            <a mix-get href="/.cp-ad/confirm_user_cancel?key={{user.user_pk}}">{{x.lans('cancel').capitalize()}}</a>
+            <a mix-post href="/.cp-ad/api-unblock-user?key={{user.user_pk}}" mix-default="{{x.lans('unblock').capitalize()}}" 
                 mix-await="{{x.lans('unblocking').capitalize()}}...">{{x.lans('unblock').capitalize()}}</a>
         </div>
     </div>

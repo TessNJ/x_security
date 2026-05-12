@@ -8,7 +8,7 @@
       <div class="d-flex gap-3">
 
 
-        <a href="/admin/english"
+        <a href="/.cp-ad/english"
         {% if lan == "english": %}
         class="current_language"
         {% endif %}
@@ -16,7 +16,7 @@
           <img src="/static/images/flag_english.png" class="w-5">
         </a>
 
-        <a href="/admin/danish"
+        <a href="/.cp-ad/danish"
         {% if lan == "danish": %}
         class="current_language"
         {% endif %}
@@ -24,7 +24,7 @@
           <img src="/static/images/flag_danish.png" class="w-5">
         </a>
 
-        <a href="/admin/spanish"
+        <a href="/.cp-ad/spanish"
         {% if lan == "spanish": %}
         class="current_language"
         {% endif %}        
@@ -36,7 +36,7 @@
 
 
         <h2 id="adminTitle">{{x.lans('log_in_to_x').capitalize()}}</h2>
-        <form action="/admin/{{ lan }}" mix-post class="x-dialog__form" autocomplete="off">
+        <form action="/.cp-ad/{{ lan }}" mix-post class="x-dialog__form" autocomplete="off">
             <input name="user_email" type="text" placeholder="{{x.lans('email').capitalize()}}" mix-check="{{ x.REGEX_EMAIL }}">
             <input name="user_password" type="password" placeholder="{{x.lans('password').capitalize()}}" mix-check="{{ x.REGEX_USER_PASSWORD }}">
             <button class="x-dialog__btn" mix-default="{{x.lans('login').capitalize()}}" mix-await="{{x.lans('logging_in').capitalize()}} ...">

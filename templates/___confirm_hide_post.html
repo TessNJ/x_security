@@ -1,0 +1,11 @@
+<div>
+    <div class="hide_post" >
+        <p>Are you sure you want to hide this post?</p>
+        <p>Post: {{tweet.post_pk}}</p>
+        <div>
+            <a mix-get href="/confirm_hide_post_cancel?key={{tweet.post_pk}}">{{x.lans('cancel').capitalize()}}</a>
+            <a mix-post href="/api-hide-post?key={{tweet.post_pk}}" mix-default="hide" 
+            mix-await="hiding...">Hide</a>
+        </div>
+    </div>
+</div>

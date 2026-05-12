@@ -63,6 +63,13 @@
                         <span class="pointer-e-none">{{ x.lans('profile').capitalize() }}</span>
                     </a>
                 </li>
+                <li>
+                    <a href="/my-posts" mix-get mix-default="<i class='fa-regular fa-user'></i> My posts"
+                        mix-await="{{x.lans('loading').capitalize()}} ...">
+                        <i class="fa-regular fa-user"></i>
+                        <span class="pointer-e-none">My posts</span>
+                    </a>
+                </li>
 
                 <li><a href="#" style="pointer-events: none;"><i class="fa-solid fa-ellipsis"></i><span>{{ x.lans('more').capitalize() }}</span></a></li>
                 <li><a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i><span>{{

@@ -1,0 +1,9 @@
+{% include "_header.html" %}
+
+{% block title %}Page Not Found{% endblock %}
+{% block body %}
+
+  <h1>Oops! Looks like the page doesn't exist anymore</h1>
+  <a href="{{ url_for('view_index') }}"><p>Click Here</a>To go to the Home Page</p>
+
+{% endblock %}

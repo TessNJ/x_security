@@ -51,6 +51,11 @@ def global_variables():
     )
 
 ##############################
+@app.errorhandler(404)
+def not_found(e):
+    return redirect(url_for("view_index")), 404, {"Refresh": "1; url=/"}
+
+##############################
 @app.get("/")
 def view_index():
     return render_template("index.html")
@@ -390,7 +395,7 @@ def home():
         next_page = 2
 
         db, cursor = x.db()
-        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
+        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 AND post_is_hidden = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
         cursor.execute(q)
         tweets = cursor.fetchall()
         
@@ -434,7 +439,7 @@ def home_comp():
     try:
         user = session.get("user", "")
         db, cursor = x.db()
-        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
+        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 AND post_is_hidden = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
         cursor.execute(q)
         tweets = cursor.fetchall()
         
@@ -461,6 +466,210 @@ def home_comp():
     finally:
         if "cursor" in locals(): cursor.close()
         if "db" in locals(): db.close()
+
+##############################
+@app.get("/my-posts")
+@x.no_cache
+def my_posts():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    try:
+        user = session.get("user", "")
+
+        q = "SELECT * FROM users WHERE user_pk = %s"
+        db, cursor = x.db()
+        cursor.execute(q, (user["user_pk"],))
+        user = cursor.fetchone()
+
+        next_page = 2
+
+        db, cursor = x.db()
+        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_user_fk = %s AND post_deleted_at = 0 AND post_is_blocked = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
+        cursor.execute(q, (user["user_pk"],))
+        tweets = cursor.fetchall()
+        
+        ic(tweets)
+
+        posts_html = render_template("_my_posts.html", user=user, tweets=tweets)
+
+        return f"""
+            <browser mix-update="main">{ posts_html }</browser>
+            <browser mix-remove="#search_results"></browser>
+            """
+    except Exception as ex:
+        ic(ex)
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+#############
+@app.route("/confirm_hide_post", methods=["POST"])
+@x.no_cache
+def confirm_hide_post():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    try: 
+        post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
+
+        tweet = {}
+        tweet["post_pk"] = post_pk
+        confirm_hide_post = render_template("___confirm_hide_post.html", tweet=tweet)
+
+        return f"""
+        <browser mix-update="#hide_confirm">{confirm_hide_post}</browser>
+        """
+    except Exception as ex:
+        ic(ex)
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    
+#############
+@app.route("/confirm_unhide_post", methods=["POST"])
+@x.no_cache
+def confirm_unhide_post():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    try: 
+        post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
+
+        tweet = {}
+        tweet["post_pk"] = post_pk
+        confirm_unhide_post = render_template("___confirm_unhide_post.html", tweet=tweet)
+        ic(tweet)
+
+        return f"""
+        <browser mix-update="#hide_confirm">{confirm_unhide_post}</browser>
+        """
+    except Exception as ex:
+        ic(ex)
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
+#############
+@app.route("/confirm_hide_post_cancel", methods=["GET"])
+@x.no_cache
+def confirm_hide_post_cancel():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    try: 
+        return f"""
+        <browser mix-update="#hide_confirm"></browser>
+        """
+    except Exception as ex:
+        ic(ex)
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
+
+#########################      
+@app.post("/api-hide-post")
+def hide_post():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    try:
+        
+        post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
+        
+        db, cursor = x.db()
+        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
+        tweet = cursor.fetchone()
+
+        if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
+        if tweet["post_is_blocked"] != 0 : raise Exception("post is blocked", 400)
+        if tweet["post_is_hidden"] != 0 : raise Exception("is alreadyhidden", 400)
+
+        q="UPDATE posts SET post_is_hidden = 1 WHERE post_pk = %s"
+        cursor.execute(q, (post_pk, ))
+        db.commit()
+        if cursor.rowcount != 1: raise Exception(f"{x.lans('post_couldnt_be').capitalize()} hidden", 400)
+
+        new_input = render_template("___button_unhide_post.html", tweet=tweet)
+        ic(tweet)
+       
+        toast_ok = render_template("___toast_ok.html", message="post is hidden")
+
+        return f"""
+            <browser mix-bottom="#toast">{toast_ok}</browser>
+            <browser mix-replace="#post_hide_{post_pk}">
+                {new_input}
+            </browser>
+            <browser mix-update="#hide_confirm"></browser>
+        """
+    except Exception as ex:
+        ic(ex)
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+#########################      
+@app.post("/api-unhide-post")
+def unhide_post():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    try:
+        
+        post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
+        ic(post_pk)
+        
+        db, cursor = x.db()
+        q = "SELECT * FROM posts WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
+        tweet = cursor.fetchone()
+        ic(tweet)
+
+        if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
+        if tweet["post_is_blocked"] != 0 : raise Exception("post is blocked", 400)
+        if tweet["post_is_hidden"] == 0 : raise Exception("post is not hidden", 400)
+
+        q="UPDATE posts SET post_is_hidden = 0 WHERE post_pk = %s"
+        cursor.execute(q, (post_pk, ))
+        db.commit()
+        if cursor.rowcount != 1: raise Exception(f"{x.lans('post_couldnt_be').capitalize()} unhidden", 400)
+
+        new_input = render_template("___button_hide_post.html", tweet=tweet)
+        
+        toast_ok = render_template("___toast_ok.html", message="post is no longer hidden")
+
+        return f"""
+            <browser mix-bottom="#toast">{toast_ok}</browser>
+            <browser mix-replace="#post_hide_{post_pk}">
+                {new_input}
+            </browser>
+            <browser mix-update="#hide_confirm"></browser>
+        """
+    except Exception as ex:
+        ic(ex)
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
 
 
 ##############################
@@ -677,7 +886,7 @@ def api_get_tweets():
         next_page = int(request.args.get("page", ""))
 
         db, cursor = x.db()
-        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0  ORDER BY post_created_at DESC LIMIT %s, 5"
+        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND post_is_hidden = 0 AND post_is_blocked = 0 ORDER BY post_created_at DESC LIMIT %s, 5"
         cursor.execute(q, ((next_page - 1)*5, ))
         tweets = cursor.fetchall()
         
@@ -739,12 +948,13 @@ def api_create_post():
         post_updated_at = 0
         post_deleted_at = 0
         post_is_blocked = 0
+        post_is_hidden = 0
         post_total_likes = 0
         post_total_comments = 0
 
         db, cursor = x.db()
-        q = "INSERT INTO posts VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(q, (post_pk, user_pk, post, post_image_path, post_total_likes, post_total_comments, post_created_at, post_updated_at, post_deleted_at, post_is_blocked))
+        q = "INSERT INTO posts VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        cursor.execute(q, (post_pk, user_pk, post, post_image_path, post_total_likes, post_total_comments, post_created_at, post_updated_at, post_deleted_at, post_is_blocked, post_is_hidden))
         db.commit()
 
         toast_ok = render_template("___toast_ok.html", message=x.lans('the_world_is_reading').capitalize())
@@ -800,6 +1010,8 @@ def api_update_post():
             tweet = cursor.fetchone()
 
             if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
+            if tweet["post_is_hidden"] != 0 : raise Exception("hidden", 400)
+            if tweet["post_is_blocked"] != 0 : raise Exception("blocked", 400)
 
             post_edit_container = render_template("___tweet-edit.html", tweet=tweet)
             return f"""
@@ -828,6 +1040,8 @@ def api_update_post():
             tweet = cursor.fetchone()
 
             if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
+            if tweet["post_is_hidden"] != 0 : raise Exception("hidden", 400)
+            if tweet["post_is_blocked"] != 0 : raise Exception("blocked", 400)
 
             imgState = request.form.get("hidden_"+tweet["post_pk"], "")
 
@@ -890,6 +1104,8 @@ def api_cancel_post():
         tweet = cursor.fetchone()
 
         if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_already_deleted').capitalize(), 400)
+        if tweet["post_is_hidden"] != 0 : raise Exception("hidden", 400)
+        if tweet["post_is_blocked"] != 0 : raise Exception("blocked", 400)
 
         post_edit_container = render_template("___tweet-display.html", tweet=tweet)
         return f"""
@@ -931,11 +1147,12 @@ def api_delete_post():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     if request.method == "GET":
         try:
+
             post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
             user_pk = session["user"]["user_pk"]
 
             db, cursor = x.db()
-            q="SELECT * FROM posts WHERE post_pk = %s AND post_user_fk"
+            q="SELECT * FROM posts WHERE post_pk = %s AND post_user_fk = %s"
             cursor.execute(q, (post_pk, user_pk))
             tweet = cursor.fetchone()
 
@@ -968,6 +1185,8 @@ def api_delete_post():
             tweet = cursor.fetchone()
 
             if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
+            if tweet["post_is_hidden"] != 0 : raise Exception("hidden", 400)
+            if tweet["post_is_blocked"] != 0 : raise Exception("blocked", 400)
 
             post_deleted_at = int(time.time())
 
@@ -977,7 +1196,8 @@ def api_delete_post():
             if cursor.rowcount != 1: raise Exception(x.lans('post_couldnt_update').capitalize(), 400)
 
 
-            q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
+            # q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 AND post_is_hidden = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
+            q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 AND post_is_hidden = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
             cursor.execute(q)
             tweets = cursor.fetchall()
             
@@ -1018,6 +1238,8 @@ def show_comments():
         post = cursor.fetchone()
 
         if post["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
+        if post["post_is_hidden"] != 0 : raise Exception("hidden", 400)
+        if post["post_is_blocked"] != 0 : raise Exception("blocked", 400)
 
         q = "SELECT * FROM users JOIN comments ON user_pk = comment_user_fk WHERE comment_deleted_at = 0 AND post_fk = %s ORDER BY comment_created_at DESC LIMIT 0, 5"
         cursor.execute(q, (post_pk,))
@@ -1087,6 +1309,8 @@ def create_comments():
         post = cursor.fetchone()
 
         if post["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
+        if post["post_is_hidden"] != 0 : raise Exception("hidden", 400)
+        if post["post_is_blocked"] != 0 : raise Exception("blocked", 400)
 
         user = session.get("user", "")
         comment_message = x.validate_comment(request.form.get("comment", ""))
@@ -1476,8 +1700,8 @@ def remove_like():
 
 
 ###########################
-@app.route("/admin", methods=["GET", "POST"])
-@app.route("/admin/<lan>", methods=["GET", "POST"])
+@app.route("/.cp-ad", methods=["GET", "POST"])
+@app.route("/.cp-ad/<lan>", methods=["GET", "POST"])
 @x.no_cache
 def admin(lan="english") :
     if lan not in x.allowed_languages: lan = "english"
@@ -1497,7 +1721,7 @@ def admin(lan="english") :
             admin["email"] = app.config['ADMIN_EMAIL']
             admin["password"] = app.config['ADMIN_PASSWORD']
             session["admin"] = admin
-            return f"""<browser mix-redirect="/control_panel"></browser>"""
+            return f"""<browser mix-redirect="/.cp-ad/control_panel"></browser>"""
         except Exception as ex:
             ic(ex)
 
@@ -1615,7 +1839,7 @@ def get_data_from_sheet_button():
 
 ############3
 
-@app.route("/control_panel", methods=["GET"])
+@app.route("/.cp-ad/control_panel", methods=["GET"])
 @x.no_cache
 def control_panel():
     if not x.validate_admin_logged() :
@@ -1643,7 +1867,7 @@ def temp_route():
     return "ok"
             
 ########################
-@app.route("/control_panel/posts", methods=["GET"])
+@app.route("/.cp-ad/control_panel/posts", methods=["GET"])
 @x.no_cache
 def admin_posts():
     if not x.validate_admin_logged() :
@@ -1684,7 +1908,7 @@ def admin_posts():
             if "db" in locals(): db.close()
  
 ##############################
-@app.get("/api-get-tweets-admin")
+@app.get("/.cp-ad/api-get-tweets-admin")
 def api_get_tweets_admin():
     if not x.validate_admin_logged() :
         session.clear()
@@ -1735,7 +1959,7 @@ def api_get_tweets_admin():
         if "db" in locals(): db.close()
 
 #############
-@app.route("/confirm_block_post", methods=["POST"])
+@app.route("/.cp-ad/confirm_block_post", methods=["POST"])
 @x.no_cache
 def confirm_block_post():
     if not x.validate_admin_logged() :
@@ -1763,7 +1987,7 @@ def confirm_block_post():
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     
 #############
-@app.route("/confirm_unblock_post", methods=["POST"])
+@app.route("/.cp-ad/confirm_unblock_post", methods=["POST"])
 @x.no_cache
 def confirm_unblock_post():
     if not x.validate_admin_logged() :
@@ -1791,7 +2015,7 @@ def confirm_unblock_post():
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 #############
-@app.route("/confirm_post_cancel", methods=["GET"])
+@app.route("/.cp-ad/confirm_post_cancel", methods=["GET"])
 @x.no_cache
 def confirm_post_cancel():
     if not x.validate_admin_logged() :
@@ -1812,7 +2036,7 @@ def confirm_post_cancel():
 
 
 #########################      
-@app.post("/api-block-post")
+@app.post("/.cp-ad/api-block-post")
 def block_post():
     if not x.validate_admin_logged() :
         session.clear()
@@ -1828,6 +2052,7 @@ def block_post():
 
         if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
         if tweet["post_is_blocked"] != 0 : raise Exception(x.lans('post_already_blocked').capitalize(), 400)
+        if tweet["post_is_hidden"] != 0 : raise Exception("hidden", 400)
 
         q="UPDATE posts SET post_is_blocked = 1 WHERE post_pk = %s"
         cursor.execute(q, (post_pk, ))
@@ -1866,7 +2091,7 @@ def block_post():
         if "db" in locals(): db.close()
 
 #########################      
-@app.post("/api-unblock-post")
+@app.post("/.cp-ad/api-unblock-post")
 def unblock_post():
     if not x.validate_admin_logged() :
         session.clear()
@@ -1882,6 +2107,7 @@ def unblock_post():
 
         if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
         if tweet["post_is_blocked"] == 0 : raise Exception(f"{x.lans('post_isnt').capitalize()} {x.lans('blocked')}" , 400)
+        if tweet["post_is_hidden"] != 0 : raise Exception("hidden", 400)
 
         q="UPDATE posts SET post_is_blocked = 0 WHERE post_pk = %s"
         cursor.execute(q, (post_pk, ))
@@ -1919,7 +2145,7 @@ def unblock_post():
 
 
 ########################
-@app.route("/control_panel/users", methods=["GET"])
+@app.route("/.cp-ad/control_panel/users", methods=["GET"])
 @x.no_cache
 def admin_user():
     if not x.validate_admin_logged() :
@@ -1959,7 +2185,7 @@ def admin_user():
         if "db" in locals(): db.close()
 
 ##############################
-@app.get("/api-get-users-admin")
+@app.get("/.cp-ad/api-get-users-admin")
 def api_get_users_admin():
     if not x.validate_admin_logged() :
         session.clear()
@@ -2011,7 +2237,7 @@ def api_get_users_admin():
 
 
 #############
-@app.route("/confirm_block_user", methods=["POST"])
+@app.route("/.cp-ad/confirm_block_user", methods=["POST"])
 @x.no_cache
 def confirm_block_user():
     if not x.validate_admin_logged() :
@@ -2039,7 +2265,7 @@ def confirm_block_user():
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     
 #############
-@app.route("/confirm_unblock_user", methods=["POST"])
+@app.route("/.cp-ad/confirm_unblock_user", methods=["POST"])
 @x.no_cache
 def confirm_unblock_user():
     if not x.validate_admin_logged() :
@@ -2068,7 +2294,7 @@ def confirm_unblock_user():
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 #############
-@app.route("/confirm_user_cancel", methods=["GET"])
+@app.route("/.cp-ad/confirm_user_cancel", methods=["GET"])
 @x.no_cache
 def confirm_user_cancel():
     if not x.validate_admin_logged() :
@@ -2089,7 +2315,7 @@ def confirm_user_cancel():
 
 
 #########################      
-@app.post("/api-block-user")
+@app.post("/.cp-ad/api-block-user")
 def block_user():
     if not x.validate_admin_logged() :
         session.clear()
@@ -2139,7 +2365,7 @@ def block_user():
         if "db" in locals(): db.close()
 
 #########################      
-@app.post("/api-unblock-user")
+@app.post("/.cp-ad/api-unblock-user")
 def unblock_user():
     if not x.validate_admin_logged() :
         session.clear()

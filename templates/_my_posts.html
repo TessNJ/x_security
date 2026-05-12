@@ -1,0 +1,13 @@
+<h1>My posts</h1>
+
+
+<div>
+    <div id="posts">
+        {% for tweet in tweets: %}
+        {% include "_my_tweet.html" %}
+        {% endfor %}
+    </div>
+    {% include "___show_more.html" %}
+</div>
+
+<div id="hide_confirm" class="pop_up_confirm"></div>
