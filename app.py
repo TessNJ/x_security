@@ -480,16 +480,22 @@ def my_posts():
         cursor.execute(q, (user["user_pk"],))
         user = cursor.fetchone()
 
-        next_page = 2
-
         db, cursor = x.db()
-        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_user_fk = %s AND post_deleted_at = 0 AND post_is_blocked = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
+        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_user_fk = %s AND post_deleted_at = 0 ORDER BY post_created_at DESC LIMIT 0, 6"
+        # q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_user_fk = %s AND post_deleted_at = 0 AND post_is_blocked = 0 ORDER BY post_created_at DESC LIMIT 0, 6"
         cursor.execute(q, (user["user_pk"],))
         tweets = cursor.fetchall()
+
+        if len(tweets)== 6 :
+            next_page = 1
+            tweets.pop()
+        else :
+            next_page = 0
+            # return render_template("control_panel_posts.html", tweets=all_posts, next_page=next_page)
         
         ic(tweets)
 
-        posts_html = render_template("_my_posts.html", user=user, tweets=tweets)
+        posts_html = render_template("_my_posts.html", user=user, tweets=tweets, next_page=next_page)
 
         return f"""
             <browser mix-update="main">{ posts_html }</browser>
@@ -497,6 +503,57 @@ def my_posts():
             """
     except Exception as ex:
         ic(ex)
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+
+        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    finally:
+        if "cursor" in locals(): cursor.close()
+        if "db" in locals(): db.close()
+
+##############################
+@app.get("/api-get-my-tweets")
+def api_get_my_tweets():
+    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    try:
+        user = session.get("user", "")
+        next_page = int(request.args.get("page", ""))
+        ic(next_page)
+        db, cursor = x.db()
+        
+        # if x.python_domain :
+        q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_user_fk = %s AND post_deleted_at = 0 ORDER BY post_created_at DESC LIMIT %s, 5"
+        # q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_user_fk = %s AND post_deleted_at = 0 AND post_is_blocked = 0 ORDER BY post_created_at DESC LIMIT %s, 5"
+            # q="SELECT * FROM users JOIN posts ON user_pk = post_user_fk  ORDER BY post_created_at DESC LIMIT 11 OFFSET %s"
+
+        
+        cursor.execute(q,(user["user_pk"],5*next_page,))
+        tweets = cursor.fetchall()
+        
+        container = ""
+
+        for tweet in tweets[:5]:
+            html_tweet = render_template("_my_tweet.html", tweet = tweet)
+            container = container + html_tweet
+
+        if len(tweets) == 6:
+            new_hyperlink = render_template("___show_more_my_posts.html", next_page=next_page+1)
+        else :
+            new_hyperlink = " "
+
+        return f"""
+        <mixhtml mix-bottom="#posts">
+            {container}
+        </mixhtml>
+        <mixhtml mix-replace="#show_more">
+            {new_hyperlink}
+        </mixhtml>
+        """
+    except Exception as ex:
+        ic(ex)
+
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        

@@ -1,4 +1,3 @@
 .env
 Dockerfile
 docker-compose.yml
-x_16_04_2026.sql

@@ -7,7 +7,11 @@
         {% include "_my_tweet.html" %}
         {% endfor %}
     </div>
-    {% include "___show_more.html" %}
+    <div class="admin_show_more">
+            {% if next_page != 0%}
+            {% include "___show_more_my_posts.html" %}
+            {% endif%}
+        </div>
 </div>
 
 <div id="hide_confirm" class="pop_up_confirm"></div>

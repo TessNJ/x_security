@@ -1,4 +1,5 @@
-<article class="post" id="post_full_{{tweet.post_pk}}" mix-fade-in="5000">
+<article class="post 
+                {% if tweet.post_is_blocked != 0 %}post_blocked{%endif%}" id="post_full_{{tweet.post_pk}}" mix-fade-in="5000">
     <div>
         <img src="{{ url_for('static', filename='uploads/'~(tweet.user_avatar_path if tweet.user_avatar_path else 'default.jpg')) }}"
             alt="{{x.lans('profile_picture').capitalize()}}" class="w-8 h-8 rounded-full">
@@ -45,6 +46,7 @@
 
                 <span class="action"><i class="fa-solid fa-chart-simple"></i> 230</span>
                 <span class="action"><i class="fa-solid fa-share"></i></span>
+                {% if tweet.post_is_blocked == 0 %}
                 {% if tweet.user_username == session["user"]["user_username"]%}
                 <span>
                     <button href="/api-update-post?key={{tweet.post_pk}}" mix-get type="button">
@@ -65,6 +67,10 @@
                         <i class="fa-solid fa-trash" style="pointer-events: none;"></i>
                     </button>
                 </span>
+                {%endif%}
+                {%endif%}
+                {% if tweet.post_is_blocked != 0 %}
+                    <i class="fa-solid fa-lock" style="pointer-events: none;"></i>
                 {%endif%}
             </div>
         </div>
