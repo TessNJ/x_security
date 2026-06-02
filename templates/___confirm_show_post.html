@@ -1,11 +1,12 @@
 <div>
     <div class="hide_post" >
-        <p>{{x.lans('are_you_sure_hide').capitalize()}}?</p>
+        <p>{{x.lans('are_you_sure_show').capitalize()}}?</p>
+        </p>
         <p>{{x.lans('post_id').capitalize()}}: {{tweet.post_pk}}</p>
         <div>
             <a mix-get href="/confirm_hide_post_cancel?key={{tweet.post_pk}}">{{x.lans('cancel').capitalize()}}</a>
-            <a mix-post href="/api-hide-post?key={{tweet.post_pk}}" mix-default="{{x.lans('hide').capitalize()}}" 
-            mix-await="hiding...">{{x.lans('hide').capitalize()}}</a>
+            <a mix-post href="/api-show-post?key={{tweet.post_pk}}" mix-default="{{x.lans('show').capitalize()}}" 
+                mix-await="unhiding...">{{x.lans('show').capitalize()}}</a>
         </div>
     </div>
 </div>

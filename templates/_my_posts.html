@@ -1,4 +1,4 @@
-<h1>My posts</h1>
+<h1>{{x.lans('my_posts').capitalize()}}</h1> 
 
 
 <div>
@@ -7,7 +7,7 @@
         {% include "_my_tweet.html" %}
         {% endfor %}
     </div>
-    <div class="admin_show_more">
+    <div class="show_more">
             {% if next_page != 0%}
             {% include "___show_more_my_posts.html" %}
             {% endif%}
@@ -15,3 +15,4 @@
 </div>
 
 <div id="hide_confirm" class="pop_up_confirm"></div>
+<div id="delete_post_confirm" class="pop_up_confirm"></div>

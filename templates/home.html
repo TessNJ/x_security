@@ -64,10 +64,10 @@
                     </a>
                 </li>
                 <li>
-                    <a href="/my-posts" mix-get mix-default="<i class='fa-regular fa-user'></i> My posts"
+                    <a href="/my-posts" mix-get mix-default="<i class='fa-regular fa-user'></i> {{x.lans('my_posts').capitalize()}}"
                         mix-await="{{x.lans('loading').capitalize()}} ...">
                         <i class="fa-regular fa-user"></i>
-                        <span class="pointer-e-none">My posts</span>
+                        <span class="pointer-e-none">{{x.lans('my_posts').capitalize()}}</span> 
                     </a>
                 </li>
 

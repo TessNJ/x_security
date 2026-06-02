@@ -828,5 +828,60 @@
         "english": "a verification email has been sent",
         "danish": "en bekræftelsesmail er blevet sendt",
         "spanish": "se ha enviado un correo electrónico de verificación"
+    },
+    "are_you_sure_hide": {
+        "english": "are you sure you want to hide this post",
+        "danish": "er du sikker på, at du vil skjule dette opslag",
+        "spanish": "¿Estás segura de que quieres ocultar esta publicación"
+    },
+    "hide": {
+        "english": "hide",
+        "danish": "skjul",
+        "spanish": "esconder"
+    },
+    "show": {
+        "english": "show",
+        "danish": "vis",
+        "spanish": "espectáculo"
+    },
+    "are_you_sure_show": {
+        "english": "are you sure you want to show this post",
+        "danish": "er du sikker på, at du vil vise dette opslag",
+        "spanish": "¿Estás segura de que quieres mostrar este post"
+    },
+    "my_posts": {
+        "english": "my posts",
+        "danish": "mine opslag",
+        "spanish": "mis publicaciones"
+    },
+    "is_already_hidden": {
+        "english": "is already hidden",
+        "danish": "er allerede skjult",
+        "spanish": "ya esta escondido"
+    },
+    "is_not_hidden": {
+        "english": "is not hidden",
+        "danish": "er ikke skjult",
+        "spanish": "no esta escondido"
+    },
+    "hidden": {
+        "english": "hidden",
+        "danish": "skjult",
+        "spanish": "oculta"
+    },
+    "shown": {
+        "english": "shown",
+        "danish": "vist",
+        "spanish": "mostrada"
+    },
+    "post_is_hidden": {
+        "english": "post is hidden",
+        "danish": "indlæg er skjult",
+        "spanish": "la publicación está oculta"
+    },
+    "no_longer_hidden": {
+        "english": "post is no longer hidden",
+        "danish": "indlæg er ikke længere skjult",
+        "spanish": "la publicación ya no está oculta."
     }
 }

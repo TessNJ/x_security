@@ -482,7 +482,6 @@ def my_posts():
 
         db, cursor = x.db()
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_user_fk = %s AND post_deleted_at = 0 ORDER BY post_created_at DESC LIMIT 0, 6"
-        # q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_user_fk = %s AND post_deleted_at = 0 AND post_is_blocked = 0 ORDER BY post_created_at DESC LIMIT 0, 6"
         cursor.execute(q, (user["user_pk"],))
         tweets = cursor.fetchall()
 
@@ -491,7 +490,6 @@ def my_posts():
             tweets.pop()
         else :
             next_page = 0
-            # return render_template("control_panel_posts.html", tweets=all_posts, next_page=next_page)
         
         ic(tweets)
 
@@ -523,10 +521,7 @@ def api_get_my_tweets():
         ic(next_page)
         db, cursor = x.db()
         
-        # if x.python_domain :
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_user_fk = %s AND post_deleted_at = 0 ORDER BY post_created_at DESC LIMIT %s, 5"
-        # q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_user_fk = %s AND post_deleted_at = 0 AND post_is_blocked = 0 ORDER BY post_created_at DESC LIMIT %s, 5"
-            # q="SELECT * FROM users JOIN posts ON user_pk = post_user_fk  ORDER BY post_created_at DESC LIMIT 11 OFFSET %s"
 
         
         cursor.execute(q,(user["user_pk"],5*next_page,))
@@ -589,20 +584,20 @@ def confirm_hide_post():
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     
 #############
-@app.route("/confirm_unhide_post", methods=["POST"])
+@app.route("/confirm_show_post", methods=["POST"])
 @x.no_cache
-def confirm_unhide_post():
+def confirm_show_post():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try: 
         post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
 
         tweet = {}
         tweet["post_pk"] = post_pk
-        confirm_unhide_post = render_template("___confirm_unhide_post.html", tweet=tweet)
+        confirm_show_post = render_template("___confirm_show_post.html", tweet=tweet)
         ic(tweet)
 
         return f"""
-        <browser mix-update="#hide_confirm">{confirm_unhide_post}</browser>
+        <browser mix-update="#hide_confirm">{confirm_show_post}</browser>
         """
     except Exception as ex:
         ic(ex)
@@ -646,18 +641,18 @@ def hide_post():
         tweet = cursor.fetchone()
 
         if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
-        if tweet["post_is_blocked"] != 0 : raise Exception("post is blocked", 400)
-        if tweet["post_is_hidden"] != 0 : raise Exception("is alreadyhidden", 400)
+        if tweet["post_is_blocked"] != 0 : raise Exception(x.lans('post_is_blocked').capitalize(), 400)
+        if tweet["post_is_hidden"] != 0 : raise Exception(x.lans('is_already_hidden').capitalize(), 400)
 
         q="UPDATE posts SET post_is_hidden = 1 WHERE post_pk = %s"
         cursor.execute(q, (post_pk, ))
         db.commit()
-        if cursor.rowcount != 1: raise Exception(f"{x.lans('post_couldnt_be').capitalize()} hidden", 400)
+        if cursor.rowcount != 1: raise Exception(f"{x.lans('post_couldnt_be').capitalize()} {x.lans('hidden').capitalize()}", 400)
 
-        new_input = render_template("___button_unhide_post.html", tweet=tweet)
+        new_input = render_template("___button_show_post.html", tweet=tweet)
         ic(tweet)
        
-        toast_ok = render_template("___toast_ok.html", message="post is hidden")
+        toast_ok = render_template("___toast_ok.html", message=x.lans('post_is_hidden').capitalize())
 
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -680,8 +675,8 @@ def hide_post():
         if "db" in locals(): db.close()
 
 #########################      
-@app.post("/api-unhide-post")
-def unhide_post():
+@app.post("/api-show-post")
+def show_post():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
     try:
         
@@ -696,16 +691,16 @@ def unhide_post():
 
         if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
         if tweet["post_is_blocked"] != 0 : raise Exception("post is blocked", 400)
-        if tweet["post_is_hidden"] == 0 : raise Exception("post is not hidden", 400)
+        if tweet["post_is_hidden"] == 0 : raise Exception(x.lans('is_not_hidden').capitalize(), 400)
 
         q="UPDATE posts SET post_is_hidden = 0 WHERE post_pk = %s"
         cursor.execute(q, (post_pk, ))
         db.commit()
-        if cursor.rowcount != 1: raise Exception(f"{x.lans('post_couldnt_be').capitalize()} unhidden", 400)
+        if cursor.rowcount != 1: raise Exception(f"{x.lans('post_couldnt_be').capitalize()} {x.lans('shown').capitalize()}", 400)
 
         new_input = render_template("___button_hide_post.html", tweet=tweet)
         
-        toast_ok = render_template("___toast_ok.html", message="post is no longer hidden")
+        toast_ok = render_template("___toast_ok.html", message=x.lans('no_longer_hidden').capitalize())
 
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -2109,7 +2104,6 @@ def block_post():
 
         if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
         if tweet["post_is_blocked"] != 0 : raise Exception(x.lans('post_already_blocked').capitalize(), 400)
-        if tweet["post_is_hidden"] != 0 : raise Exception("hidden", 400)
 
         q="UPDATE posts SET post_is_blocked = 1 WHERE post_pk = %s"
         cursor.execute(q, (post_pk, ))
@@ -2164,7 +2158,7 @@ def unblock_post():
 
         if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
         if tweet["post_is_blocked"] == 0 : raise Exception(f"{x.lans('post_isnt').capitalize()} {x.lans('blocked')}" , 400)
-        if tweet["post_is_hidden"] != 0 : raise Exception("hidden", 400)
+
 
         q="UPDATE posts SET post_is_blocked = 0 WHERE post_pk = %s"
         cursor.execute(q, (post_pk, ))

@@ -224,6 +224,14 @@ main {
         
       }
     }
+  .show_more {
+    > a {
+      padding: 0.5rem 1rem;
+      border-radius: 30px;
+      background-color: black;
+      color: white;
+    }
+  }
   .user-display {
     padding: 1rem;
     border-bottom: 1px solid rgb(230, 230, 230);
@@ -235,12 +243,6 @@ main {
   }
   .admin_show_more {
     margin: 2rem 20rem;
-    > a {
-      padding: 0.5rem 1rem;
-      border-radius: 30px;
-      background-color: black;
-      color: white;
-    }
   }
 
   .post {
@@ -727,7 +729,7 @@ aside {
   padding: 1rem 0;
   z-index: 10;
 
-  .delete_user, .delete_post, .block_post, .block_user {
+  .delete_user, .delete_post, .block_post, .block_user, .hide_post {
     margin: auto;
     padding: 1rem 2rem;
     color: white;
