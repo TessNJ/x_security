@@ -60,6 +60,12 @@ def not_found(e):
 def view_index():
     return render_template("index.html")
 
+##############################
+@app.get("/.well-known/security.txt")
+def securitytxt():
+    security = open("./static/security.txt")
+    return security
+
 
 ##############################
 @app.route("/login", methods=["GET", "POST"])
