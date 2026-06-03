@@ -5,8 +5,10 @@
         <p>{{x.lans('post_id').capitalize()}}: {{tweet.post_pk}}</p>
         <div>
             <a mix-get href="/confirm_hide_post_cancel?key={{tweet.post_pk}}">{{x.lans('cancel').capitalize()}}</a>
-            <a mix-post href="/api-show-post?key={{tweet.post_pk}}" mix-default="{{x.lans('show').capitalize()}}" 
-                mix-await="unhiding...">{{x.lans('show').capitalize()}}</a>
+            <form action="/api-show-post?key={{tweet.post_pk}}" mix-post>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button mix-default="{{x.lans('show').capitalize()}}" 
+                mix-await="unhiding...">{{x.lans('show').capitalize()}}</button>
         </div>
     </div>
 </div>
