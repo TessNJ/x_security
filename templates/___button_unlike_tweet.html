@@ -1,4 +1,7 @@
 
-<button id="like{{tweet.post_pk}}" type="button" class="action"  href="/unlike?post_pk={{tweet.post_pk}}" mix-post>
-    <i class="fa-solid fa-heart" style="pointer-events: none;"></i>     
-</button>
+<form id="like{{tweet.post_pk}}" action="/unlike?post_pk={{tweet.post_pk}}" mix-post>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="action" >
+        <i class="fa-solid fa-heart" style="pointer-events: none;"></i>     
+    </button>
+</form>

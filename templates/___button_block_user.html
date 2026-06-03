@@ -1,4 +1,6 @@
-<button id="user_block_{{user.user_pk}}" type="button" 
-href="/.cp-ad/confirm_block_user?key={{user.user_pk}}&username={{user.user_username}}" mix-post>
-    <i class="fa-solid fa-unlock-alt fa-2x" style="pointer-events: none;"></i> 
-</button>
+<form id="user_block_{{user.user_pk}}" action="/.cp-ad/confirm_block_user?key={{user.user_pk}}&username={{user.user_username}}" mix-post>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit">
+        <i class="fa-solid fa-unlock-alt fa-2x" style="pointer-events: none;"></i> 
+    </button>
+</form>

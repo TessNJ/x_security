@@ -1,5 +1,5 @@
-<button id="follow{{suggestion.user_pk}}" 
-type="button"
-class="px-4 py-1 text-c-white bg-c-black rounded-lg" 
-href="/follow?user_pk={{suggestion.user_pk}}" 
-mix-post>{{x.lans("follow").capitalize()}}</button>
+<form id="follow{{suggestion.user_pk}}"  action="/follow?user_pk={{suggestion.user_pk}}" mix-post>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit"
+    class="px-4 py-1 text-c-white bg-c-black rounded-lg" >{{x.lans("follow").capitalize()}}</button>
+</form>
