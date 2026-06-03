@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, session, redirect, url_for, j
 from flask_session import Session
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
+from flask_wtf.csrf import _FlaskFormCSRF, CSRFProtect
 import x
 import time
 import uuid
@@ -11,54 +12,69 @@ import io
 import csv
 import json
 from dotenv import load_dotenv
+import secrets
 
 load_dotenv()
 
 from icecream import ic
-ic.configureOutput(prefix=f'----- | ', includeContext=True)
+
+ic.configureOutput(prefix=f"----- | ", includeContext=True)
 
 app = Flask(__name__)
 
-# Set the maximum file size to 10 MB
-app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024   # 1 MB
+csrf = CSRFProtect(app)
 
-app.config['SESSION_TYPE'] = 'filesystem'
+# Set the maximum file size to 10 MB
+app.secret_key = os.getenv("SECRET_KEY")
+
+app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024  # 1 MB
+
+app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-post_upload_folder = "/home/TereseNJ/mysite/static/images" if x.python_domain else "./static/images"
-app.config['POST_UPLOAD_FOLDER'] = post_upload_folder
+post_upload_folder = (
+    "/home/TereseNJ/mysite/static/images" if x.python_domain else "./static/images"
+)
+app.config["POST_UPLOAD_FOLDER"] = post_upload_folder
 
-upload_folder = "/home/TereseNJ/mysite/static/uploads" if x.python_domain else "./static/uploads"
-app.config['UPLOAD_FOLDER'] = upload_folder
-app.config['ADMIN_EMAIL'] = os.getenv('ADMIN_EMAIL')
-app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD')
-app.config['GOOGLE_SPREADSHEET_KEY'] = os.getenv('GOOGLE_SPREADSHEET_KEY')
-app.config['LINK_BASE'] = os.getenv('LINK_BASE')
+upload_folder = (
+    "/home/TereseNJ/mysite/static/uploads" if x.python_domain else "./static/uploads"
+)
+app.config["UPLOAD_FOLDER"] = upload_folder
+app.config["ADMIN_EMAIL"] = os.getenv("ADMIN_EMAIL")
+app.config["ADMIN_PASSWORD"] = os.getenv("ADMIN_PASSWORD")
+app.config["GOOGLE_SPREADSHEET_KEY"] = os.getenv("GOOGLE_SPREADSHEET_KEY")
+app.config["LINK_BASE"] = os.getenv("LINK_BASE")
 
 
 ##############################
 ##############################
 ##############################
-def _____USER_____(): pass
+def _____USER_____():
+    pass
+
+
 ##############################
 ##############################
 ##############################
+
 
 @app.context_processor
 def global_variables():
-    return dict (
-        x = x
-    )
+    return dict(x=x)
+
 
 ##############################
 @app.errorhandler(404)
 def not_found(e):
     return redirect(url_for("view_index")), 404, {"Refresh": "1; url=/"}
 
+
 ##############################
 @app.get("/")
 def view_index():
     return render_template("index.html")
+
 
 ##############################
 @app.get("/.well-known/security.txt")
@@ -71,12 +87,14 @@ def securitytxt():
 @app.route("/login", methods=["GET", "POST"])
 @app.route("/login/<lan>", methods=["GET", "POST"])
 @x.no_cache
-def login(lan = "english"):
+def login(lan="english"):
 
-    if lan not in x.allowed_languages: lan = "english"
+    if lan not in x.allowed_languages:
+        lan = "english"
     x.default_language = lan
-    
-    if session.get("user", ""): return redirect(url_for("home"))
+
+    if session.get("user", ""):
+        return redirect(url_for("home"))
 
     if request.method == "GET":
         message = session.get("message", "")
@@ -95,16 +113,17 @@ def login(lan = "english"):
             db, cursor = x.db()
             cursor.execute(q, (user_email,))
             user = cursor.fetchone()
-            if not user: raise Exception(x.lans('user_not_found').capitalize(), 400)
+            if not user:
+                raise Exception(x.lans("user_not_found").capitalize(), 400)
 
             if not check_password_hash(user["user_password"], user_password):
-                raise Exception(x.lans('invalid_credentials').capitalize(), 400)
+                raise Exception(x.lans("invalid_credentials").capitalize(), 400)
 
             if user["user_verification_key"] != "":
-                raise Exception(x.lans('user_not_verified').capitalize(), 400)
-            
-            if user["user_deleted_at"] != 0 :
-                raise Exception(x.lans('user_deactivated').capitalize(), 400)
+                raise Exception(x.lans("user_not_verified").capitalize(), 400)
+
+            if user["user_deleted_at"] != 0:
+                raise Exception(x.lans("user_deactivated").capitalize(), 400)
 
             user.pop("user_password")
             user["user_language"] = x.default_language
@@ -118,15 +137,24 @@ def login(lan = "english"):
             # User errors
             if ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<browser mix-update="#toast">{ toast_error }</browser>""", 400
+                return (
+                    f"""<browser mix-update="#toast">{ toast_error }</browser>""",
+                    400,
+                )
 
             # System or developer error
-            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+            toast_error = render_template(
+                "___toast_error.html",
+                message=x.lans("system_under_maintenance").capitalize(),
+            )
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
         finally:
-            if "cursor" in locals(): cursor.close()
-            if "db" in locals(): db.close()
+            if "cursor" in locals():
+                cursor.close()
+            if "db" in locals():
+                db.close()
+
 
 ##############################
 @app.get("/logout")
@@ -142,16 +170,21 @@ def logout():
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
         # System or developer error
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
+
 
 ##############################
 @app.route("/signup", methods=["GET", "POST"])
 @app.route("/signup/<lan>", methods=["GET", "POST"])
 @x.no_cache
-def signup(lan = "english"):
+def signup(lan="english"):
 
-    if lan not in x.allowed_languages: lan = "english"
+    if lan not in x.allowed_languages:
+        lan = "english"
     x.default_language = lan
 
     if request.method == "GET":
@@ -184,15 +217,41 @@ def signup(lan = "english"):
             # Connect to the database
             q = "INSERT INTO users VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             db, cursor = x.db()
-            cursor.execute(q, (user_pk, user_email, user_hashed_password, user_username,
-            user_first_name, user_last_name, user_avatar_path, user_total_followers, user_password_reset, user_verification_key, user_verified_at, user_updated_at, user_deleted_at, user_is_blocked))
+            cursor.execute(
+                q,
+                (
+                    user_pk,
+                    user_email,
+                    user_hashed_password,
+                    user_username,
+                    user_first_name,
+                    user_last_name,
+                    user_avatar_path,
+                    user_total_followers,
+                    user_password_reset,
+                    user_verification_key,
+                    user_verified_at,
+                    user_updated_at,
+                    user_deleted_at,
+                    user_is_blocked,
+                ),
+            )
             db.commit()
 
             # send verification email
-            email_verify_account = render_template("_email_verify_account.html", user_verification_key=user_verification_key, lan=x.default_language, link=app.config['LINK_BASE'])
-            x.send_email(user_email, x.lans("verify_your_account").capitalize(), email_verify_account)
+            email_verify_account = render_template(
+                "_email_verify_account.html",
+                user_verification_key=user_verification_key,
+                lan=x.default_language,
+                link=app.config["LINK_BASE"],
+            )
+            x.send_email(
+                user_email,
+                x.lans("verify_your_account").capitalize(),
+                email_verify_account,
+            )
 
-            session["message"] = x.lans('verify_email_sent').capitalize()
+            session["message"] = x.lans("verify_email_sent").capitalize()
 
             return f"""<mixhtml mix-redirect="{ url_for('login') }"></mixhtml>""", 400
         except Exception as ex:
@@ -200,64 +259,94 @@ def signup(lan = "english"):
             # User errors
             if ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                return (
+                    f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""",
+                    400,
+                )
 
             # Database errors
             if "Duplicate entry" and user_email in str(ex):
-                toast_error = render_template("___toast_error.html", message=x.lans('email_registered').capitalize())
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                toast_error = render_template(
+                    "___toast_error.html",
+                    message=x.lans("email_registered").capitalize(),
+                )
+                return (
+                    f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""",
+                    400,
+                )
             if "Duplicate entry" and user_username in str(ex):
-                toast_error = render_template("___toast_error.html", message=x.lans('username_registered').capitalize())
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                toast_error = render_template(
+                    "___toast_error.html",
+                    message=x.lans("username_registered").capitalize(),
+                )
+                return (
+                    f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""",
+                    400,
+                )
 
             # System or developer error
-            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+            toast_error = render_template(
+                "___toast_error.html",
+                message=x.lans("system_under_maintenance").capitalize(),
+            )
             return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
 
         finally:
-            if "cursor" in locals(): cursor.close()
-            if "db" in locals(): db.close()
+            if "cursor" in locals():
+                cursor.close()
+            if "db" in locals():
+                db.close()
+
 
 ##############################
 @app.route("/verify-account", methods=["GET"])
 @x.no_cache
 def verify_account():
     try:
-        user_verification_key = x.validate_uuid4_without_dashes(request.args.get("key", ""))
+        user_verification_key = x.validate_uuid4_without_dashes(
+            request.args.get("key", "")
+        )
         user_verified_at = int(time.time())
-        
+
         db, cursor = x.db()
         q = "UPDATE users SET user_verification_key = '', user_verified_at = %s WHERE user_verification_key = %s"
         cursor.execute(q, (user_verified_at, user_verification_key))
         db.commit()
-        
-        if cursor.rowcount != 1: raise Exception(x.lans('invalid_key').capitalize(), 400)
-        
-        return redirect( url_for('login') )
+
+        if cursor.rowcount != 1:
+            raise Exception(x.lans("invalid_key").capitalize(), 400)
+
+        return redirect(url_for("login"))
     except Exception as ex:
         ic(ex)
-        if "db" in locals(): db.rollback()
+        if "db" in locals():
+            db.rollback()
         # User errors
-        
+
         if ex.args[1] == 400:
-                toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
         # System or developer error
-        toast_error = render_template("___toast_error.html", message=x.lans('cannot_verify"').capitalize())
+        toast_error = render_template(
+            "___toast_error.html", message=x.lans('cannot_verify"').capitalize()
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
 
 #####################
-@app.route("/request_password", methods=["GET","POST"])
+@app.route("/request_password", methods=["GET", "POST"])
 @app.route("/request_password/<lan>", methods=["GET", "POST"])
 @x.no_cache
 def request_password(lan="english"):
-    if lan not in x.allowed_languages: lan = "english"
+    if lan not in x.allowed_languages:
+        lan = "english"
     x.default_language = lan
 
     if request.method == "GET":
@@ -273,100 +362,140 @@ def request_password(lan="english"):
             cursor.execute(q, (user_email,))
             user = cursor.fetchone()
 
-            if not user: raise Exception(x.lans('user_not_found').capitalize(), 400)
+            if not user:
+                raise Exception(x.lans("user_not_found").capitalize(), 400)
 
             if user["user_verification_key"] != "":
-                raise Exception(x.lans('user_not_verified').capitalize(), 400)
-            
-            if user["user_deleted_at"] != 0 :
-                raise Exception(x.lans('user_deactivated').capitalize(), 400)
-            
+                raise Exception(x.lans("user_not_verified").capitalize(), 400)
+
+            if user["user_deleted_at"] != 0:
+                raise Exception(x.lans("user_deactivated").capitalize(), 400)
+
             user_password_reset = uuid.uuid4().hex
 
             q = "UPDATE users SET user_password_reset = %s WHERE user_email = %s"
             cursor.execute(q, (user_password_reset, user_email))
             db.commit()
-            
-            email_forgot_password = render_template("_email_forgot_password.html", user_password_reset=user_password_reset, lan=x.default_language, link=app.config['LINK_BASE'])
-            
-            x.send_email(user_email, x.lans('set_new_password').capitalize(), email_forgot_password)
 
-            toast_ok = render_template("___toast_ok.html", message=x.lans('password_reset_sent').capitalize())
+            email_forgot_password = render_template(
+                "_email_forgot_password.html",
+                user_password_reset=user_password_reset,
+                lan=x.default_language,
+                link=app.config["LINK_BASE"],
+            )
+
+            x.send_email(
+                user_email,
+                x.lans("set_new_password").capitalize(),
+                email_forgot_password,
+            )
+
+            toast_ok = render_template(
+                "___toast_ok.html", message=x.lans("password_reset_sent").capitalize()
+            )
 
             return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
             """
-            
+
         except Exception as ex:
             if ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+                return (
+                    f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""",
+                    400,
+                )
 
             # System or developer error
-            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+            toast_error = render_template(
+                "___toast_error.html",
+                message=x.lans("system_under_maintenance").capitalize(),
+            )
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
-            if "cursor" in locals(): cursor.close()
-            if "db" in locals(): db.close()
-        
+            if "cursor" in locals():
+                cursor.close()
+            if "db" in locals():
+                db.close()
 
 
 #####################
 @app.route("/change_password", methods=["GET", "POST"])
 @x.no_cache
-def change_password(lan = "english"):
+def change_password(lan="english"):
 
     lan = request.args.get("lan", "")
-    if lan not in x.allowed_languages: lan = "english"
+    if lan not in x.allowed_languages:
+        lan = "english"
     x.default_language = lan
 
     if request.method == "GET":
         try:
-            if len(request.args.get("key", "")) != 32: raise Exception(x.lans('link_is_invalid').capitalize(), 400)
-            user_password_reset = x.validate_uuid4_without_dashes(request.args.get("key", ""))
-            
+            if len(request.args.get("key", "")) != 32:
+                raise Exception(x.lans("link_is_invalid").capitalize(), 400)
+            user_password_reset = x.validate_uuid4_without_dashes(
+                request.args.get("key", "")
+            )
+
             db, cursor = x.db()
             q = "SELECT * FROM users WHERE user_password_reset = %s"
             cursor.execute(q, (user_password_reset,))
             user = cursor.fetchone()
 
-            if not user: raise Exception(x.lans('link_is_invalid').capitalize(), 400)
+            if not user:
+                raise Exception(x.lans("link_is_invalid").capitalize(), 400)
 
-            return render_template("change_password.html", lan=x.default_language, user_password_reset=user_password_reset)
+            return render_template(
+                "change_password.html",
+                lan=x.default_language,
+                user_password_reset=user_password_reset,
+            )
         except Exception as ex:
             ic(ex)
-            if "db" in locals(): db.rollback()
+            if "db" in locals():
+                db.rollback()
             # User errors
 
             if ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+                return (
+                    f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""",
+                    400,
+                )
 
             # System or developer error
-            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+            toast_error = render_template(
+                "___toast_error.html",
+                message=x.lans("system_under_maintenance").capitalize(),
+            )
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
         finally:
-            if "cursor" in locals(): cursor.close()
-            if "db" in locals(): db.close()
+            if "cursor" in locals():
+                cursor.close()
+            if "db" in locals():
+                db.close()
 
     if request.method == "POST":
         try:
-            user_password_reset = x.validate_uuid4_without_dashes(request.args.get("key", ""))
+            user_password_reset = x.validate_uuid4_without_dashes(
+                request.args.get("key", "")
+            )
 
             user_new_password = x.validate_user_password()
             x.validate_user_password_confirm(user_new_password)
-            
+
             user_hashed_password = generate_password_hash(user_new_password)
 
             db, cursor = x.db()
             q = "UPDATE users SET user_password_reset = '', user_password = %s WHERE user_password_reset = %s"
             cursor.execute(q, (user_hashed_password, user_password_reset))
             db.commit()
-            
-            if cursor.rowcount != 1: raise Exception(x.lans('link_is_invalid').capitalize(), 400)
 
-            session["message"] = x.lans('updated_password').capitalize()
+            if cursor.rowcount != 1:
+                raise Exception(x.lans("link_is_invalid").capitalize(), 400)
+
+            session["message"] = x.lans("updated_password").capitalize()
 
             return f"""
             <browser mix-redirect="/login"></browser>
@@ -374,27 +503,38 @@ def change_password(lan = "english"):
 
         except Exception as ex:
             ic(ex)
-            if "db" in locals(): db.rollback()
+            if "db" in locals():
+                db.rollback()
             # User errors
 
             if ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+                return (
+                    f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""",
+                    400,
+                )
 
             # System or developer error
-            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+            toast_error = render_template(
+                "___toast_error.html",
+                message=x.lans("system_under_maintenance").capitalize(),
+            )
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
-        finally: 
-            if "cursor" in locals(): cursor.close()
-            if "db" in locals(): db.close()
+        finally:
+            if "cursor" in locals():
+                cursor.close()
+            if "db" in locals():
+                db.close()
+
 
 ##############################
 @app.get("/home")
 @x.no_cache
 # @x.logged
 def home():
-    if not x.validate_user_logged() : return x.redirect_index_flask()
+    if not x.validate_user_logged():
+        return x.redirect_index_flask()
     try:
         user = session.get("user", "")
 
@@ -404,14 +544,14 @@ def home():
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 AND post_is_hidden = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
         cursor.execute(q)
         tweets = cursor.fetchall()
-        
+
         for tweet in tweets:
-            q="SELECT EXISTS(SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s) AS liked"
+            q = "SELECT EXISTS(SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s) AS liked"
             cursor.execute(q, (user["user_pk"], tweet["post_pk"]))
             tweet["liked"] = bool(cursor.fetchone()["liked"])
 
         ic(tweets)
-        
+
         q = "SELECT * FROM trends ORDER BY RAND() LIMIT 3"
         cursor.execute(q)
         trends = cursor.fetchall()
@@ -419,44 +559,62 @@ def home():
         user_follower = session.get("user", "")
 
         q = "SELECT * FROM users WHERE user_pk != %s AND user_is_blocked = 0 AND user_deleted_at = 0 AND users.user_pk NOT IN ( SELECT follows.followed_fk FROM follows WHERE follows.follower_fk = %s ) ORDER BY RAND() LIMIT 3"
-        cursor.execute(q, (user_follower["user_pk"], user_follower["user_pk"],))
+        cursor.execute(
+            q,
+            (
+                user_follower["user_pk"],
+                user_follower["user_pk"],
+            ),
+        )
         suggestions = cursor.fetchall()
 
-        return render_template("home.html", tweets=tweets, trends=trends, suggestions=suggestions, next_page=next_page)
+        return render_template(
+            "home.html",
+            tweets=tweets,
+            trends=trends,
+            suggestions=suggestions,
+            next_page=next_page,
+        )
     except Exception as ex:
         ic(ex)
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
 
 ##############################
 @app.get("/home-comp")
 @x.no_cache
 def home_comp():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         user = session.get("user", "")
         db, cursor = x.db()
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 AND post_is_hidden = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
         cursor.execute(q)
         tweets = cursor.fetchall()
-        
+
         for tweet in tweets:
-            q="SELECT EXISTS(SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s) AS liked"
+            q = "SELECT EXISTS(SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s) AS liked"
             cursor.execute(q, (user["user_pk"], tweet["post_pk"]))
             tweet["liked"] = bool(cursor.fetchone()["liked"])
 
         next_page = 2
 
-        html = render_template("_home_comp.html", tweets=tweets, next_page = next_page)
+        html = render_template("_home_comp.html", tweets=tweets, next_page=next_page)
         return f"""
             <mixhtml mix-update="main">{ html }</mixhtml>
             <browser mix-remove="#search_results"></browser>"""
@@ -465,19 +623,26 @@ def home_comp():
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
+
 
 ##############################
 @app.get("/my-posts")
 @x.no_cache
 def my_posts():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         user = session.get("user", "")
 
@@ -491,15 +656,17 @@ def my_posts():
         cursor.execute(q, (user["user_pk"],))
         tweets = cursor.fetchall()
 
-        if len(tweets)== 6 :
+        if len(tweets) == 6:
             next_page = 1
             tweets.pop()
-        else :
+        else:
             next_page = 0
-        
+
         ic(tweets)
 
-        posts_html = render_template("_my_posts.html", user=user, tweets=tweets, next_page=next_page)
+        posts_html = render_template(
+            "_my_posts.html", user=user, tweets=tweets, next_page=next_page
+        )
 
         return f"""
             <browser mix-update="main">{ posts_html }</browser>
@@ -509,39 +676,53 @@ def my_posts():
         ic(ex)
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
+
 
 ##############################
 @app.get("/api-get-my-tweets")
 def api_get_my_tweets():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         user = session.get("user", "")
         next_page = int(request.args.get("page", ""))
         ic(next_page)
         db, cursor = x.db()
-        
+
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_user_fk = %s AND post_deleted_at = 0 ORDER BY post_created_at DESC LIMIT %s, 5"
 
-        
-        cursor.execute(q,(user["user_pk"],5*next_page,))
+        cursor.execute(
+            q,
+            (
+                user["user_pk"],
+                5 * next_page,
+            ),
+        )
         tweets = cursor.fetchall()
-        
+
         container = ""
 
         for tweet in tweets[:5]:
-            html_tweet = render_template("_my_tweet.html", tweet = tweet)
+            html_tweet = render_template("_my_tweet.html", tweet=tweet)
             container = container + html_tweet
 
         if len(tweets) == 6:
-            new_hyperlink = render_template("___show_more_my_posts.html", next_page=next_page+1)
-        else :
+            new_hyperlink = render_template(
+                "___show_more_my_posts.html", next_page=next_page + 1
+            )
+        else:
             new_hyperlink = " "
 
         return f"""
@@ -557,20 +738,27 @@ def api_get_my_tweets():
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
+
 
 #############
 @app.route("/confirm_hide_post", methods=["GET"])
 @x.no_cache
 def confirm_hide_post():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
-    try: 
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
+    try:
         post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
 
         tweet = {}
@@ -584,17 +772,22 @@ def confirm_hide_post():
         ic(ex)
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
-    
+
+
 #############
 @app.route("/confirm_show_post", methods=["GET"])
 @x.no_cache
 def confirm_show_post():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
-    try: 
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
+    try:
         post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
 
         tweet = {}
@@ -609,17 +802,22 @@ def confirm_show_post():
         ic(ex)
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
 
 #############
 @app.route("/confirm_hide_post_cancel", methods=["GET"])
 @x.no_cache
 def confirm_hide_post_cancel():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
-    try: 
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
+    try:
         return f"""
         <browser mix-update="#hide_confirm"></browser>
         """
@@ -627,38 +825,51 @@ def confirm_hide_post_cancel():
         ic(ex)
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 
-#########################      
+#########################
 @app.post("/api-hide-post")
 def hide_post():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
-        
+
         post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
-        
+
         db, cursor = x.db()
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_pk = %s"
         cursor.execute(q, (post_pk,))
         tweet = cursor.fetchone()
 
-        if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
-        if tweet["post_is_blocked"] != 0 : raise Exception(x.lans('post_is_blocked').capitalize(), 400)
-        if tweet["post_is_hidden"] != 0 : raise Exception(x.lans('is_already_hidden').capitalize(), 400)
+        if tweet["post_deleted_at"] != 0:
+            raise Exception(x.lans("post_is_deleted").capitalize(), 400)
+        if tweet["post_is_blocked"] != 0:
+            raise Exception(x.lans("post_is_blocked").capitalize(), 400)
+        if tweet["post_is_hidden"] != 0:
+            raise Exception(x.lans("is_already_hidden").capitalize(), 400)
 
-        q="UPDATE posts SET post_is_hidden = 1 WHERE post_pk = %s"
-        cursor.execute(q, (post_pk, ))
+        q = "UPDATE posts SET post_is_hidden = 1 WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
         db.commit()
-        if cursor.rowcount != 1: raise Exception(f"{x.lans('post_couldnt_be').capitalize()} {x.lans('hidden').capitalize()}", 400)
+        if cursor.rowcount != 1:
+            raise Exception(
+                f"{x.lans('post_couldnt_be').capitalize()} {x.lans('hidden').capitalize()}",
+                400,
+            )
 
         new_input = render_template("___button_show_post.html", tweet=tweet)
         ic(tweet)
-       
-        toast_ok = render_template("___toast_ok.html", message=x.lans('post_is_hidden').capitalize())
+
+        toast_ok = render_template(
+            "___toast_ok.html", message=x.lans("post_is_hidden").capitalize()
+        )
 
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -672,41 +883,57 @@ def hide_post():
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
-#########################      
+
+#########################
 @app.post("/api-show-post")
 def show_post():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
-        
+
         post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
         ic(post_pk)
-        
+
         db, cursor = x.db()
         q = "SELECT * FROM posts WHERE post_pk = %s"
         cursor.execute(q, (post_pk,))
         tweet = cursor.fetchone()
         ic(tweet)
 
-        if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
-        if tweet["post_is_blocked"] != 0 : raise Exception("post is blocked", 400)
-        if tweet["post_is_hidden"] == 0 : raise Exception(x.lans('is_not_hidden').capitalize(), 400)
+        if tweet["post_deleted_at"] != 0:
+            raise Exception(x.lans("post_is_deleted").capitalize(), 400)
+        if tweet["post_is_blocked"] != 0:
+            raise Exception("post is blocked", 400)
+        if tweet["post_is_hidden"] == 0:
+            raise Exception(x.lans("is_not_hidden").capitalize(), 400)
 
-        q="UPDATE posts SET post_is_hidden = 0 WHERE post_pk = %s"
-        cursor.execute(q, (post_pk, ))
+        q = "UPDATE posts SET post_is_hidden = 0 WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
         db.commit()
-        if cursor.rowcount != 1: raise Exception(f"{x.lans('post_couldnt_be').capitalize()} {x.lans('shown').capitalize()}", 400)
+        if cursor.rowcount != 1:
+            raise Exception(
+                f"{x.lans('post_couldnt_be').capitalize()} {x.lans('shown').capitalize()}",
+                400,
+            )
 
         new_input = render_template("___button_hide_post.html", tweet=tweet)
-        
-        toast_ok = render_template("___toast_ok.html", message=x.lans('no_longer_hidden').capitalize())
+
+        toast_ok = render_template(
+            "___toast_ok.html", message=x.lans("no_longer_hidden").capitalize()
+        )
 
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -720,21 +947,26 @@ def show_post():
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
-
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
 
 ##############################
 @app.get("/profile")
 @x.no_cache
 def profile():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         user = session.get("user", "")
 
@@ -753,30 +985,36 @@ def profile():
         ic(ex)
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
 
 ##############################
 @app.route("/api-update-profile", methods=["POST"])
 @x.no_cache
 def api_update_profile():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
 
         user = session.get("user", "")
 
         ######### img
-        uploaded_file = request.files.get('user_avatar_path', "")
+        uploaded_file = request.files.get("user_avatar_path", "")
         if uploaded_file:
             _, ext = os.path.splitext(uploaded_file.filename)
             new_name = uuid.uuid4().hex + ext
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], new_name)
+            file_path = os.path.join(app.config["UPLOAD_FOLDER"], new_name)
             uploaded_file.save(file_path)
         else:
             new_name = user["user_avatar_path"]
@@ -794,7 +1032,18 @@ def api_update_profile():
         # Connect to the database
         q = "UPDATE users SET user_email = %s, user_username = %s, user_first_name = %s, user_last_name = %s, user_avatar_path = %s, user_updated_at = %s WHERE user_pk = %s"
         db, cursor = x.db()
-        cursor.execute(q, (user_email, user_username, user_first_name, user_last_name, user_avatar_path, user_updated_at, user["user_pk"]))
+        cursor.execute(
+            q,
+            (
+                user_email,
+                user_username,
+                user_first_name,
+                user_last_name,
+                user_avatar_path,
+                user_updated_at,
+                user["user_pk"],
+            ),
+        )
         db.commit()
 
         q = "SELECT * FROM users WHERE user_pk = %s"
@@ -806,18 +1055,24 @@ def api_update_profile():
         session["user"] = user_db
 
         # Response to the browser
-        toast_ok = render_template("___toast_ok.html", message=x.lans('update_successful').capitalize())
-        return f"""
+        toast_ok = render_template(
+            "___toast_ok.html", message=x.lans("update_successful").capitalize()
+        )
+        return (
+            f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
             <browser mix-update="#profile_tag .name">{user_first_name} {user_last_name}</browser>
             <browser mix-update="#profile_tag .handle">@{user_username}</browser>
             <browser mix-replace="#profile_tag img">
             <img src="/static/uploads/{new_name}" alt="Profile">
             </browser>
-        """, 200
+        """,
+            200,
+        )
     except Exception as ex:
         ic(ex)
-        if "db" in locals(): db.rollback()
+        if "db" in locals():
+            db.rollback()
 
         # User errors
         if ex.args[1] == 400:
@@ -826,33 +1081,44 @@ def api_update_profile():
 
         # Database errors
         if "Duplicate entry" and user_email in str(ex):
-            toast_error = render_template("___toast_error.html", message=x.lans('email_registered').capitalize())
+            toast_error = render_template(
+                "___toast_error.html", message=x.lans("email_registered").capitalize()
+            )
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
         if "Duplicate entry" and user_username in str(ex):
-            toast_error = render_template("___toast_error.html", message=x.lans('username_registered').capitalize())
+            toast_error = render_template(
+                "___toast_error.html",
+                message=x.lans("username_registered").capitalize(),
+            )
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
         # System or developer error
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintanence').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintanence").capitalize(),
+        )
         return f"""<mixhtml mix-bottom="#toast">{ toast_error }</mixhtml>""", 500
 
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
 
 ###################
 @app.route("/confirm_delete", methods=["GET", "POST"])
 @x.no_cache
 def confirm_delete():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     if request.method == "GET":
         confirm_delete = render_template("___confirm_delete.html")
 
         return f"""
         <browser mix-update="#confirmDelete">{confirm_delete}</browser>
         """
-    if request.method == "POST" :
+    if request.method == "POST":
         return f"""
         <browser mix-update="#confirmDelete"></browser>
         """
@@ -861,8 +1127,9 @@ def confirm_delete():
 #####################
 @app.get("/delete_user")
 @x.no_cache
-def delete_user() :
-    if not x.validate_user_logged() : return x.redirect_index_flask()
+def delete_user():
+    if not x.validate_user_logged():
+        return x.redirect_index_flask()
     try:
         user_pk = session["user"]["user_pk"]
         user_email = session["user"]["user_email"]
@@ -873,90 +1140,106 @@ def delete_user() :
         cursor.execute(q, (user_deleted_at, user_pk))
         db.commit()
 
-        q="UPDATE posts SET post_deleted_at = %s WHERE post_user_fk = %s"
+        q = "UPDATE posts SET post_deleted_at = %s WHERE post_user_fk = %s"
         cursor.execute(q, (user_deleted_at, user_pk))
 
         # Follow updates
-        if x.python_domain :
-            q="SELECT * FROM follows WHERE follower_fk = %s"
+        if x.python_domain:
+            q = "SELECT * FROM follows WHERE follower_fk = %s"
             cursor.execute(q, (user_pk,))
             all_follows = cursor.fetchall()
 
             for follow in all_follows:
-                q="UPDATE users SET user_total_followers = user_total_followers-1 WHERE user_pk = %s"
+                q = "UPDATE users SET user_total_followers = user_total_followers-1 WHERE user_pk = %s"
                 cursor.execute(q, (follow["followed_fk"],))
-        
-        q="DELETE FROM follows WHERE follower_fk = %s"
+
+        q = "DELETE FROM follows WHERE follower_fk = %s"
         cursor.execute(q, (user_pk,))
 
-        # Likes updates 
-        if x.python_domain :
-            q="SELECT * FROM likes WHERE liker_user_fk = %s"
+        # Likes updates
+        if x.python_domain:
+            q = "SELECT * FROM likes WHERE liker_user_fk = %s"
             cursor.execute(q, (user_pk,))
             all_likes = cursor.fetchall()
 
             for like in all_likes:
-                q="UPDATE posts SET post_total_likes = post_total_likes-1 WHERE post_pk = %s"
+                q = "UPDATE posts SET post_total_likes = post_total_likes-1 WHERE post_pk = %s"
                 cursor.execute(q, (like["liked_post_fk"],))
-        
-        q="DELETE FROM likes WHERE liker_user_fk = %s"
+
+        q = "DELETE FROM likes WHERE liker_user_fk = %s"
         cursor.execute(q, (user_pk,))
 
-        # Comments updates 
-        q="SELECT * FROM comments WHERE comment_user_fk = %s"
+        # Comments updates
+        q = "SELECT * FROM comments WHERE comment_user_fk = %s"
         cursor.execute(q, (user_pk,))
         all_comments = cursor.fetchall()
 
         for comment in all_comments:
-            q="UPDATE posts SET post_total_comments = post_total_comments-1 WHERE post_pk = %s"
+            q = "UPDATE posts SET post_total_comments = post_total_comments-1 WHERE post_pk = %s"
             cursor.execute(q, (comment["post_fk"],))
-       
-        q="UPDATE comments SET comment_deleted_at = %s WHERE comment_user_fk = %s"
+
+        q = "UPDATE comments SET comment_deleted_at = %s WHERE comment_user_fk = %s"
         cursor.execute(q, (user_deleted_at, user_pk))
 
         db.commit()
 
-        email_user_deleted = render_template("_email_user_deleted.html", link=app.config['LINK_BASE'])
-        x.send_email(user_email, x.lans('email_account_is_deleted').capitalize(), email_user_deleted)
-        
+        email_user_deleted = render_template(
+            "_email_user_deleted.html", link=app.config["LINK_BASE"]
+        )
+        x.send_email(
+            user_email,
+            x.lans("email_account_is_deleted").capitalize(),
+            email_user_deleted,
+        )
+
         session.clear()
         return redirect(url_for("login"))
 
     except Exception as ex:
         ic(ex)
-        if "db" in locals(): db.rollback()
+        if "db" in locals():
+            db.rollback()
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
+
 
 ##############################
 @app.get("/api-get-tweets")
 def api_get_tweets():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         next_page = int(request.args.get("page", ""))
 
         db, cursor = x.db()
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND post_is_hidden = 0 AND post_is_blocked = 0 ORDER BY post_created_at DESC LIMIT %s, 5"
-        cursor.execute(q, ((next_page - 1)*5, ))
+        cursor.execute(q, ((next_page - 1) * 5,))
         tweets = cursor.fetchall()
-        
+
         container = ""
 
         for tweet in tweets[:4]:
-            html_tweet = render_template("_tweet.html", tweet = tweet)
+            html_tweet = render_template("_tweet.html", tweet=tweet)
             container = container + html_tweet
 
         if len(tweets) == 5:
-            new_hyperlink = render_template("___show_more.html", next_page=next_page+1)
-        else :
+            new_hyperlink = render_template(
+                "___show_more.html", next_page=next_page + 1
+            )
+        else:
             new_hyperlink = " "
 
         return f"""
@@ -972,30 +1255,36 @@ def api_get_tweets():
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
 
 ##############################
 @app.route("/api-create-post", methods=["POST"])
 @x.no_cache
 def api_create_post():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         user = session.get("user", "")
         user_pk = user["user_pk"]
         post = x.validate_post(request.form.get("post", ""))
 
-        uploaded_file = request.files.get('post_image_attach', "")
+        uploaded_file = request.files.get("post_image_attach", "")
         if uploaded_file:
             _, ext = os.path.splitext(uploaded_file.filename)
             post_image_path = uuid.uuid4().hex + ext
-            file_path = os.path.join(app.config['POST_UPLOAD_FOLDER'],  post_image_path)
+            file_path = os.path.join(app.config["POST_UPLOAD_FOLDER"], post_image_path)
             uploaded_file.save(file_path)
         else:
             post_image_path = ""
@@ -1012,10 +1301,27 @@ def api_create_post():
 
         db, cursor = x.db()
         q = "INSERT INTO posts VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(q, (post_pk, user_pk, post, post_image_path, post_total_likes, post_total_comments, post_created_at, post_updated_at, post_deleted_at, post_is_blocked, post_is_hidden))
+        cursor.execute(
+            q,
+            (
+                post_pk,
+                user_pk,
+                post,
+                post_image_path,
+                post_total_likes,
+                post_total_comments,
+                post_created_at,
+                post_updated_at,
+                post_deleted_at,
+                post_is_blocked,
+                post_is_hidden,
+            ),
+        )
         db.commit()
 
-        toast_ok = render_template("___toast_ok.html", message=x.lans('the_world_is_reading').capitalize())
+        toast_ok = render_template(
+            "___toast_ok.html", message=x.lans("the_world_is_reading").capitalize()
+        )
         tweet = {
             "user_first_name": user["user_first_name"],
             "user_last_name": user["user_last_name"],
@@ -1023,11 +1329,11 @@ def api_create_post():
             "user_avatar_path": user["user_avatar_path"],
             "post_message": post,
             "post_total_likes": 0,
-            "post_total_comments":0,
+            "post_total_comments": 0,
             "post_liked": False,
             "post_pk": post_pk,
-            "post_image_path" : post_image_path,
-            "post_created_at" : post_created_at
+            "post_image_path": post_image_path,
+            "post_created_at": post_created_at,
         }
         html_post_container = render_template("___post_container.html")
         html_post = render_template("_tweet.html", tweet=tweet)
@@ -1038,38 +1344,52 @@ def api_create_post():
         """
     except Exception as ex:
         ic(ex)
-        if "db" in locals(): db.rollback()
+        if "db" in locals():
+            db.rollback()
 
         # User errors
         if "x-error post" in str(ex):
-            toast_error = render_template("___toast_error.html", message=f"{x.lans('post_must_be')} - {x.POST_MIN_LEN} {x.lans('to')} {x.POST_MAX_LEN} {x.lans('characters')}")
+            toast_error = render_template(
+                "___toast_error.html",
+                message=f"{x.lans('post_must_be')} - {x.POST_MIN_LEN} {x.lans('to')} {x.POST_MAX_LEN} {x.lans('characters')}",
+            )
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>"""
 
         # System or developer error
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
+
 
 ##############################
-@app.route("/api-update-post", methods=["GET","POST"])
+@app.route("/api-update-post", methods=["GET", "POST"])
 @x.no_cache
 def api_update_post():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     if request.method == "GET":
         try:
             post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
 
             db, cursor = x.db()
-            q="SELECT * FROM posts WHERE post_pk = %s"
+            q = "SELECT * FROM posts WHERE post_pk = %s"
             cursor.execute(q, (post_pk,))
             tweet = cursor.fetchone()
 
-            if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
-            if tweet["post_is_hidden"] != 0 : raise Exception("hidden", 400)
-            if tweet["post_is_blocked"] != 0 : raise Exception("blocked", 400)
+            if tweet["post_deleted_at"] != 0:
+                raise Exception(x.lans("post_is_deleted").capitalize(), 400)
+            if tweet["post_is_hidden"] != 0:
+                raise Exception("hidden", 400)
+            if tweet["post_is_blocked"] != 0:
+                raise Exception("blocked", 400)
 
             post_edit_container = render_template("___tweet-edit.html", tweet=tweet)
             return f"""
@@ -1080,37 +1400,50 @@ def api_update_post():
 
             if ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+                return (
+                    f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""",
+                    400,
+                )
 
-            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+            toast_error = render_template(
+                "___toast_error.html",
+                message=x.lans("system_under_maintenance").capitalize(),
+            )
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
-            if "cursor" in locals(): cursor.close()
-            if "db" in locals(): db.close()
+            if "cursor" in locals():
+                cursor.close()
+            if "db" in locals():
+                db.close()
     if request.method == "POST":
         try:
             post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
             user_pk = session["user"]["user_pk"]
-            
+
             db, cursor = x.db()
-            q="SELECT * FROM posts WHERE post_pk = %s"
+            q = "SELECT * FROM posts WHERE post_pk = %s"
             cursor.execute(q, (post_pk,))
             tweet = cursor.fetchone()
 
-            if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
-            if tweet["post_is_hidden"] != 0 : raise Exception("hidden", 400)
-            if tweet["post_is_blocked"] != 0 : raise Exception("blocked", 400)
+            if tweet["post_deleted_at"] != 0:
+                raise Exception(x.lans("post_is_deleted").capitalize(), 400)
+            if tweet["post_is_hidden"] != 0:
+                raise Exception("hidden", 400)
+            if tweet["post_is_blocked"] != 0:
+                raise Exception("blocked", 400)
 
-            imgState = request.form.get("hidden_"+tweet["post_pk"], "")
+            imgState = request.form.get("hidden_" + tweet["post_pk"], "")
 
             ######### img
             image_path = tweet["post_image_path"]
-            uploaded_file = request.files.get('post_image_'+tweet["post_pk"], "default.jpg")
+            uploaded_file = request.files.get(
+                "post_image_" + tweet["post_pk"], "default.jpg"
+            )
 
-            if imgState == "newIMG" :
+            if imgState == "newIMG":
                 _, ext = os.path.splitext(uploaded_file.filename)
                 new_name = uuid.uuid4().hex + ext
-                file_path = os.path.join(app.config['POST_UPLOAD_FOLDER'], new_name)
+                file_path = os.path.join(app.config["POST_UPLOAD_FOLDER"], new_name)
                 uploaded_file.save(file_path)
                 image_path = new_name
             elif imgState == "deleted":
@@ -1119,51 +1452,69 @@ def api_update_post():
 
             ##### message
             post_message = x.validate_post(request.form.get("post", ""))
-            if not post_message : raise Exception(x.lans('post_couldnt_update').capitalize(), 400)
+            if not post_message:
+                raise Exception(x.lans("post_couldnt_update").capitalize(), 400)
 
             q = "UPDATE posts SET post_message = %s, post_image_path = %s, post_updated_at = %s WHERE post_pk = %s AND post_user_fk = %s"
-            cursor.execute(q, (post_message, image_path, post_updated_at, tweet["post_pk"], user_pk ))
+            cursor.execute(
+                q,
+                (post_message, image_path, post_updated_at, tweet["post_pk"], user_pk),
+            )
             db.commit()
-            if cursor.rowcount != 1: raise Exception(x.lans('post_couldnt_update').capitalize(), 400)
+            if cursor.rowcount != 1:
+                raise Exception(x.lans("post_couldnt_update").capitalize(), 400)
 
-            q="SELECT * FROM posts WHERE post_pk = %s"
+            q = "SELECT * FROM posts WHERE post_pk = %s"
             cursor.execute(q, (post_pk,))
             tweet = cursor.fetchone()
 
-            
             post_edit_container = render_template("___tweet-display.html", tweet=tweet)
             return f"""
                 <browser mix-replace="#post_{tweet['post_pk']}">{post_edit_container}</browser>
             """
         except Exception as ex:
             ic(ex)
-            if "db" in locals(): db.rollback()
+            if "db" in locals():
+                db.rollback()
 
             if ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+                return (
+                    f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""",
+                    400,
+                )
 
-            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+            toast_error = render_template(
+                "___toast_error.html",
+                message=x.lans("system_under_maintenance").capitalize(),
+            )
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
-            if "cursor" in locals(): cursor.close()
-            if "db" in locals(): db.close()
-        
+            if "cursor" in locals():
+                cursor.close()
+            if "db" in locals():
+                db.close()
+
+
 @app.route("/api-cancel-post", methods=["GET"])
 @x.no_cache
 def api_cancel_post():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
 
         db, cursor = x.db()
-        q="SELECT * FROM posts WHERE post_pk = %s"
+        q = "SELECT * FROM posts WHERE post_pk = %s"
         cursor.execute(q, (post_pk,))
         tweet = cursor.fetchone()
 
-        if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_already_deleted').capitalize(), 400)
-        if tweet["post_is_hidden"] != 0 : raise Exception("hidden", 400)
-        if tweet["post_is_blocked"] != 0 : raise Exception("blocked", 400)
+        if tweet["post_deleted_at"] != 0:
+            raise Exception(x.lans("post_already_deleted").capitalize(), 400)
+        if tweet["post_is_hidden"] != 0:
+            raise Exception("hidden", 400)
+        if tweet["post_is_blocked"] != 0:
+            raise Exception("blocked", 400)
 
         post_edit_container = render_template("___tweet-display.html", tweet=tweet)
         return f"""
@@ -1175,17 +1526,24 @@ def api_cancel_post():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
+
 
 #################3
 @app.route("/api-cancel-confirm", methods=["GET"])
 @x.no_cache
 def api_cancel_confirm():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         return f"""
             <browser mix-update="#delete_post_confirm"></browser>
@@ -1195,14 +1553,18 @@ def api_cancel_confirm():
             toast_error = render_template("___toast_error.html", message=ex.args[0])
             return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 
-@app.route("/api-delete-post", methods=["GET","POST"])
+@app.route("/api-delete-post", methods=["GET", "POST"])
 @x.no_cache
 def api_delete_post():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     if request.method == "GET":
         try:
 
@@ -1210,7 +1572,7 @@ def api_delete_post():
             user_pk = session["user"]["user_pk"]
 
             db, cursor = x.db()
-            q="SELECT * FROM posts WHERE post_pk = %s AND post_user_fk = %s"
+            q = "SELECT * FROM posts WHERE post_pk = %s AND post_user_fk = %s"
             cursor.execute(q, (post_pk, user_pk))
             tweet = cursor.fetchone()
 
@@ -1225,86 +1587,113 @@ def api_delete_post():
 
             if ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+                return (
+                    f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""",
+                    400,
+                )
 
-            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+            toast_error = render_template(
+                "___toast_error.html",
+                message=x.lans("system_under_maintenance").capitalize(),
+            )
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
-            if "cursor" in locals(): cursor.close()
-            if "db" in locals(): db.close()
+            if "cursor" in locals():
+                cursor.close()
+            if "db" in locals():
+                db.close()
     if request.method == "POST":
         try:
             post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
             user = session.get("user", "")
-            
+
             db, cursor = x.db()
-            q="SELECT * FROM posts WHERE post_pk = %s"
+            q = "SELECT * FROM posts WHERE post_pk = %s"
             cursor.execute(q, (post_pk,))
             tweet = cursor.fetchone()
 
-            if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
-            if tweet["post_is_hidden"] != 0 : raise Exception("hidden", 400)
-            if tweet["post_is_blocked"] != 0 : raise Exception("blocked", 400)
+            if tweet["post_deleted_at"] != 0:
+                raise Exception(x.lans("post_is_deleted").capitalize(), 400)
+            if tweet["post_is_hidden"] != 0:
+                raise Exception("hidden", 400)
+            if tweet["post_is_blocked"] != 0:
+                raise Exception("blocked", 400)
 
             post_deleted_at = int(time.time())
 
             q = "UPDATE posts SET post_deleted_at = %s WHERE post_pk = %s"
-            cursor.execute(q, (post_deleted_at, tweet["post_pk"] ))
+            cursor.execute(q, (post_deleted_at, tweet["post_pk"]))
             db.commit()
-            if cursor.rowcount != 1: raise Exception(x.lans('post_couldnt_update').capitalize(), 400)
-
+            if cursor.rowcount != 1:
+                raise Exception(x.lans("post_couldnt_update").capitalize(), 400)
 
             # q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 AND post_is_hidden = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
             q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_deleted_at = 0 AND user_deleted_at = 0 AND post_is_blocked = 0 AND user_is_blocked = 0 AND post_is_hidden = 0 ORDER BY post_created_at DESC LIMIT 0, 5"
             cursor.execute(q)
             tweets = cursor.fetchall()
-            
+
             for tweet in tweets:
-                q="SELECT EXISTS(SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s) AS liked"
+                q = "SELECT EXISTS(SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s) AS liked"
                 cursor.execute(q, (user["user_pk"], tweet["post_pk"]))
                 tweet["liked"] = bool(cursor.fetchone()["liked"])
 
             html = render_template("_home_comp.html", tweets=tweets)
             return f"""<mixhtml mix-update="main">{ html }</mixhtml>"""
-                
+
         except Exception as ex:
             ic(ex)
-            if "db" in locals(): db.rollback()
+            if "db" in locals():
+                db.rollback()
 
             if ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+                return (
+                    f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""",
+                    400,
+                )
 
-            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+            toast_error = render_template(
+                "___toast_error.html",
+                message=x.lans("system_under_maintenance").capitalize(),
+            )
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
-            if "cursor" in locals(): cursor.close()
-            if "db" in locals(): db.close()
+            if "cursor" in locals():
+                cursor.close()
+            if "db" in locals():
+                db.close()
+
 
 ###########################
 @app.route("/show-comments", methods=["GET"])
 @x.no_cache
 def show_comments():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
 
         db, cursor = x.db()
 
-        q="SELECT * FROM posts WHERE post_pk = %s"
+        q = "SELECT * FROM posts WHERE post_pk = %s"
         cursor.execute(q, (post_pk,))
         post = cursor.fetchone()
 
-        if post["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
-        if post["post_is_hidden"] != 0 : raise Exception("hidden", 400)
-        if post["post_is_blocked"] != 0 : raise Exception("blocked", 400)
+        if post["post_deleted_at"] != 0:
+            raise Exception(x.lans("post_is_deleted").capitalize(), 400)
+        if post["post_is_hidden"] != 0:
+            raise Exception("hidden", 400)
+        if post["post_is_blocked"] != 0:
+            raise Exception("blocked", 400)
 
         q = "SELECT * FROM users JOIN comments ON user_pk = comment_user_fk WHERE comment_deleted_at = 0 AND post_fk = %s ORDER BY comment_created_at DESC LIMIT 0, 5"
         cursor.execute(q, (post_pk,))
         comments = cursor.fetchall()
         ic(comments)
 
-        show_comments = render_template("_comments_container.html", comments=comments, tweet=post)
+        show_comments = render_template(
+            "_comments_container.html", comments=comments, tweet=post
+        )
         change_button = render_template("___hide_comments.html", tweet=post)
 
         return f"""
@@ -1313,28 +1702,34 @@ def show_comments():
         """
     except Exception as ex:
         ic(ex)
-        if "db" in locals(): db.rollback()
+        if "db" in locals():
+            db.rollback()
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
+
 
 ###########################
 @app.route("/hide-comments", methods=["GET"])
 @x.no_cache
 def hide_comments():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
-        tweet = {
-            "post_pk":post_pk
-        }
+        tweet = {"post_pk": post_pk}
 
         change_button = render_template("___show_comments.html", tweet=tweet)
 
@@ -1347,9 +1742,12 @@ def hide_comments():
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 
@@ -1357,18 +1755,22 @@ def hide_comments():
 @app.route("/api-add-comments", methods=["POST"])
 @x.no_cache
 def create_comments():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
-        
+
         db, cursor = x.db()
-        q="SELECT * FROM posts WHERE post_pk = %s"
+        q = "SELECT * FROM posts WHERE post_pk = %s"
         cursor.execute(q, (post_pk,))
         post = cursor.fetchone()
 
-        if post["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
-        if post["post_is_hidden"] != 0 : raise Exception("hidden", 400)
-        if post["post_is_blocked"] != 0 : raise Exception("blocked", 400)
+        if post["post_deleted_at"] != 0:
+            raise Exception(x.lans("post_is_deleted").capitalize(), 400)
+        if post["post_is_hidden"] != 0:
+            raise Exception("hidden", 400)
+        if post["post_is_blocked"] != 0:
+            raise Exception("blocked", 400)
 
         user = session.get("user", "")
         comment_message = x.validate_comment(request.form.get("comment", ""))
@@ -1379,11 +1781,22 @@ def create_comments():
         comment_pk = uuid.uuid4().hex
 
         q = "INSERT INTO comments VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(q, (comment_pk, user["user_pk"], comment_message, post_pk, comment_created_at, comment_updated_at, comment_deleted_at))
+        cursor.execute(
+            q,
+            (
+                comment_pk,
+                user["user_pk"],
+                comment_message,
+                post_pk,
+                comment_created_at,
+                comment_updated_at,
+                comment_deleted_at,
+            ),
+        )
         db.commit()
 
         ### update total comments ###
-        q="UPDATE posts SET post_total_comments=post_total_comments+1 WHERE post_pk = %s"        
+        q = "UPDATE posts SET post_total_comments=post_total_comments+1 WHERE post_pk = %s"
         cursor.execute(q, (post_pk,))
         db.commit()
 
@@ -1396,9 +1809,9 @@ def create_comments():
             "comment_pk": comment_pk,
             "post_fk": post_pk,
             "comment_user_fk": user["user_pk"],
-            "comment_created_at" : comment_created_at,
-            "comment_updated_at" : comment_updated_at,
-            "comment_deleted_at" : comment_deleted_at
+            "comment_created_at": comment_created_at,
+            "comment_updated_at": comment_updated_at,
+            "comment_deleted_at": comment_deleted_at,
         }
 
         show_comments = render_template("___comment.html", comment=comment, tweet=post)
@@ -1412,33 +1825,40 @@ def create_comments():
         """
     except Exception as ex:
         ic(ex)
-        if "db" in locals(): db.rollback()
+        if "db" in locals():
+            db.rollback()
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
 
 ###########################
 @app.post("/follow")
 @x.no_cache
 def create_follow():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         user_followed = x.validate_uuid4_without_dashes(request.args.get("user_pk", ""))
 
         ### select user ###
         user_follower = session.get("user", "")
 
-        if user_followed == user_follower["user_pk"] : raise Exception(x.lans('user_cannot_follow').capitalize(), 400)
-        
-        
+        if user_followed == user_follower["user_pk"]:
+            raise Exception(x.lans("user_cannot_follow").capitalize(), 400)
+
         ### check follow ###
         db, cursor = x.db()
         q = "SELECT * FROM follows WHERE followed_fk = %s AND follower_fk = %s "
@@ -1446,8 +1866,8 @@ def create_follow():
 
         following = cursor.fetchone()
 
-
-        if following != None : raise Exception(x.lans('follow_already_exists').capitalize(), 400)
+        if following != None:
+            raise Exception(x.lans("follow_already_exists").capitalize(), 400)
 
         ### create follow ###
         follow_created_at = int(time.time())
@@ -1455,10 +1875,10 @@ def create_follow():
         cursor.execute(q, (user_followed, user_follower["user_pk"], follow_created_at))
 
         # Update total follow amount
-        if x.python_domain :
-            q="UPDATE users SET user_total_followers=user_total_followers+1 WHERE user_pk = %s"        
+        if x.python_domain:
+            q = "UPDATE users SET user_total_followers=user_total_followers+1 WHERE user_pk = %s"
             cursor.execute(q, (user_followed,))
-        
+
         db.commit()
 
         ### Send data ###
@@ -1470,59 +1890,68 @@ def create_follow():
             <browser mix-replace="#follow{user_followed}">
                 {new_input}
             </browser>
-        """     
-        
+        """
+
     except Exception as ex:
         ic(ex)
-        if "db" in locals(): db.rollback()
+        if "db" in locals():
+            db.rollback()
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
 
 ###########################3
 @app.post("/unfollow")
 @x.no_cache
 def remove_follow():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         # get variable
         user_followed = x.validate_uuid4_without_dashes(request.args.get("user_pk", ""))
-        
+
         # select user
         user_follower = session.get("user", "")
 
-        if user_followed == user_follower["user_pk"] : raise Exception(x.lans('user_cannot_follow').capitalize(), 400)
-        
+        if user_followed == user_follower["user_pk"]:
+            raise Exception(x.lans("user_cannot_follow").capitalize(), 400)
+
         # check follow
         db, cursor = x.db()
         q = "SELECT * FROM follows WHERE followed_fk = %s AND follower_fk = %s "
         cursor.execute(q, (user_followed, user_follower["user_pk"]))
 
         following = cursor.fetchone()
-        if following == None : raise Exception(x.lans('follow_not_found').capitalize(), 400)
+        if following == None:
+            raise Exception(x.lans("follow_not_found").capitalize(), 400)
 
         # Delete follow
         q = "DELETE FROM follows WHERE followed_fk = %s AND follower_fk = %s"
         cursor.execute(q, (user_followed, user_follower["user_pk"]))
 
         # Update total follow amount - PA
-        if x.python_domain :
-            q="UPDATE users SET user_total_followers=user_total_followers-1 WHERE user_pk = %s"        
+        if x.python_domain:
+            q = "UPDATE users SET user_total_followers=user_total_followers-1 WHERE user_pk = %s"
             cursor.execute(q, (user_followed,))
 
         db.commit()
 
         suggestion = {}
         suggestion["user_pk"] = user_followed
-        
+
         new_input = render_template("___button_follow.html", suggestion=suggestion)
 
         return f"""
@@ -1531,34 +1960,49 @@ def remove_follow():
             </browser>
         """
 
-
     except Exception as ex:
         ic(ex)
-        if "db" in locals(): db.rollback()
+        if "db" in locals():
+            db.rollback()
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
+
 
 ##############################
 @app.get("/following")
 @x.no_cache
 def following():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         db, cursor = x.db()
         user_follower = session.get("user", "")
         q = "SELECT * FROM users WHERE user_is_blocked = 0 AND user_deleted_at = 0 AND user_pk != %s AND users.user_pk IN ( SELECT follows.followed_fk FROM follows WHERE follows.follower_fk = %s )"
-        cursor.execute(q, (user_follower["user_pk"], user_follower["user_pk"],))
+        cursor.execute(
+            q,
+            (
+                user_follower["user_pk"],
+                user_follower["user_pk"],
+            ),
+        )
         user_all_following = cursor.fetchall()
 
-        following_html = render_template("_following.html", user_all_following=user_all_following)
+        following_html = render_template(
+            "_following.html", user_all_following=user_all_following
+        )
         return f"""
             <mixhtml mix-update="main">{ following_html }</mixhtml>
             <browser mix-remove="#search_results"></browser>
@@ -1568,20 +2012,26 @@ def following():
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
 
 ##############################
 @app.post("/api-search")
 @x.no_cache
 def api_search():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         user = session.get("user", "")
         search_for = request.form.get("search_for", "")
@@ -1590,16 +2040,16 @@ def api_search():
             return """
             <browser mix-remove="#search_results"></browser>
             """
-        
+
         part_of_query = f"%{search_for}%"
-        
+
         db, cursor = x.db()
         q = "SELECT * FROM users WHERE user_is_blocked = 0 AND user_deleted_at = 0 AND user_username LIKE %s AND user_username != %s"
         cursor.execute(q, (part_of_query, user["user_username"]))
         users = cursor.fetchall()
 
         for search_user in users:
-            q="SELECT EXISTS(SELECT * FROM follows WHERE follower_fk = %s AND followed_fk = %s) AS followed"
+            q = "SELECT EXISTS(SELECT * FROM follows WHERE follower_fk = %s AND followed_fk = %s) AS followed"
             cursor.execute(q, (user["user_pk"], search_user["user_pk"]))
             search_user["followed"] = bool(cursor.fetchone()["followed"])
 
@@ -1613,46 +2063,55 @@ def api_search():
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
+
 
 ###########################3
 @app.post("/like")
 @x.no_cache
 def create_like():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
-        like_user_fk = session.get("user","")
+        like_user_fk = session.get("user", "")
         post_liked_pk = x.validate_uuid4_without_dashes(request.args.get("post_pk", ""))
-    
+
         ### check post user ###
         db, cursor = x.db()
-        q="SELECT * FROM posts WHERE post_pk = %s"
+        q = "SELECT * FROM posts WHERE post_pk = %s"
         cursor.execute(q, (post_liked_pk,))
         post = cursor.fetchone()
 
-        if post["post_user_fk"] == like_user_fk["user_pk"] : raise Exception(x.lans('cannot_own_post').capitalize(), 400)
+        if post["post_user_fk"] == like_user_fk["user_pk"]:
+            raise Exception(x.lans("cannot_own_post").capitalize(), 400)
 
         ### check like ###
-        q="SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s"
+        q = "SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s"
         cursor.execute(q, (like_user_fk["user_pk"], post["post_pk"]))
         like = cursor.fetchone()
 
-        if like != None : raise Exception(x.lans('post_already_liked').capitalize(), 400)
+        if like != None:
+            raise Exception(x.lans("post_already_liked").capitalize(), 400)
 
         ### create like ###
         like_created_at = int(time.time())
         q = "INSERT INTO likes VALUES (%s, %s, %s)"
         cursor.execute(q, (post_liked_pk, like_user_fk["user_pk"], like_created_at))
 
-        # Update total likes amount 
-        if x.python_domain :
-            q="UPDATE posts SET post_total_likes=post_total_likes+1 WHERE post_pk = %s"        
+        # Update total likes amount
+        if x.python_domain:
+            q = "UPDATE posts SET post_total_likes=post_total_likes+1 WHERE post_pk = %s"
             cursor.execute(q, (post["post_pk"],))
 
         db.commit()
@@ -1660,8 +2119,8 @@ def create_like():
         post["liked"] = bool(True)
 
         # ### Send data ###
-        post_total_likes = post["post_total_likes"]+1
-        new_input = render_template("___button_unlike_tweet.html", tweet = post)
+        post_total_likes = post["post_total_likes"] + 1
+        new_input = render_template("___button_unlike_tweet.html", tweet=post)
 
         return f"""
             <browser mix-replace="#like{post_liked_pk}">
@@ -1673,64 +2132,73 @@ def create_like():
                 </span>
             </browser>
         """
-        
+
     except Exception as ex:
         ic(ex)
-        if "db" in locals(): db.rollback()
+        if "db" in locals():
+            db.rollback()
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
 
 ###########################3
 @app.post("/unlike")
 @x.no_cache
 def remove_like():
-    if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
+    if not x.validate_user_logged():
+        return x.redirect_index_mixhtlm()
     try:
         post_liked_pk = x.validate_uuid4_without_dashes(request.args.get("post_pk", ""))
         like_user_fk = session.get("user", "")
 
         ### check post user ###
         db, cursor = x.db()
-        q="SELECT * FROM posts WHERE post_pk = %s"
+        q = "SELECT * FROM posts WHERE post_pk = %s"
         cursor.execute(q, (post_liked_pk,))
         post = cursor.fetchone()
 
-        if post["post_user_fk"] == like_user_fk["user_pk"] : raise Exception(x.lans('cannot_own_post').capitalize(), 400)
-        
+        if post["post_user_fk"] == like_user_fk["user_pk"]:
+            raise Exception(x.lans("cannot_own_post").capitalize(), 400)
+
         # check like
         db, cursor = x.db()
-        q="SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s"
+        q = "SELECT * FROM likes WHERE liker_user_fk = %s AND liked_post_fk = %s"
         cursor.execute(q, (like_user_fk["user_pk"], post_liked_pk))
         like = cursor.fetchone()
 
-        if like == None : raise Exception(x.lans('post_isnt_liked').capitalize(), 400)
+        if like == None:
+            raise Exception(x.lans("post_isnt_liked").capitalize(), 400)
 
         # Delete like
         q = "DELETE FROM likes WHERE liked_post_fk = %s AND liker_user_fk = %s"
         cursor.execute(q, (post_liked_pk, like_user_fk["user_pk"]))
 
         # Update total likes amount
-        if x.python_domain :
-            q="UPDATE posts SET post_total_likes=post_total_likes-1 WHERE post_pk = %s"        
+        if x.python_domain:
+            q = "UPDATE posts SET post_total_likes=post_total_likes-1 WHERE post_pk = %s"
             cursor.execute(q, (post["post_pk"],))
-            
+
         db.commit()
 
-        post_total_likes = post["post_total_likes"]-1
-        
+        post_total_likes = post["post_total_likes"] - 1
+
         ### Send data ###
         post["liked"] = False
-    
-        new_input = render_template("___button_like_tweet.html", tweet = post)
+
+        new_input = render_template("___button_like_tweet.html", tweet=post)
 
         return f"""
             <browser mix-replace="#like{post_liked_pk}">
@@ -1744,40 +2212,49 @@ def remove_like():
         """
     except Exception as ex:
         ic(ex)
-        if "db" in locals(): db.rollback()
+        if "db" in locals():
+            db.rollback()
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
 
 ###########################
 @app.route("/.cp-ad", methods=["GET", "POST"])
 @app.route("/.cp-ad/<lan>", methods=["GET", "POST"])
 @x.no_cache
-def admin(lan="english") :
-    if lan not in x.allowed_languages: lan = "english"
+def admin(lan="english"):
+    if lan not in x.allowed_languages:
+        lan = "english"
     x.default_language = lan
     if request.method == "GET":
         return render_template("admin.html", lan=lan)
 
     if request.method == "POST":
-        try : 
+        try:
             email = x.validate_user_email()
             password = x.validate_user_password()
 
-            if  email != app.config['ADMIN_EMAIL'] : raise Exception(x.lans('invalid_email').capitalize(), 400)
-            if  password != app.config['ADMIN_PASSWORD'] : raise Exception(x.lans('invalid_credentials').capitalize(), 400)
+            if email != app.config["ADMIN_EMAIL"]:
+                raise Exception(x.lans("invalid_email").capitalize(), 400)
+            if password != app.config["ADMIN_PASSWORD"]:
+                raise Exception(x.lans("invalid_credentials").capitalize(), 400)
 
             admin = {}
-            admin["email"] = app.config['ADMIN_EMAIL']
-            admin["password"] = app.config['ADMIN_PASSWORD']
+            admin["email"] = app.config["ADMIN_EMAIL"]
+            admin["password"] = app.config["ADMIN_PASSWORD"]
             session["admin"] = admin
             return f"""<browser mix-redirect="/.cp-ad/control_panel"></browser>"""
         except Exception as ex:
@@ -1785,26 +2262,32 @@ def admin(lan="english") :
 
             if ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+                return (
+                    f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""",
+                    400,
+                )
 
-            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+            toast_error = render_template(
+                "___toast_error.html",
+                message=x.lans("system_under_maintenance").capitalize(),
+            )
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
-        
+
 ##############################
 @app.get("/8152a9ee-1f86-4a7a-9cd7-2f45b4087694ecxx523f7c-b27f-49b7-9fc1-24baaba82a5e")
 @x.no_cache
 def get_data_from_sheet():
-    if not x.validate_admin_logged() :
+    if not x.validate_admin_logged():
         session.clear()
         return redirect(url_for("view_index"))
     try:
-        
-        url= f"https://docs.google.com/spreadsheets/d/{app.config['GOOGLE_SPREADSHEET_KEY']}/export?format=csv&id={app.config['GOOGLE_SPREADSHEET_KEY']}"
-        res=requests.get(url=url)
-        
-        csv_text = res.content.decode('utf-8')
-        csv_file = io.StringIO(csv_text) # Use StringIO to treat the string as a file
+
+        url = f"https://docs.google.com/spreadsheets/d/{app.config['GOOGLE_SPREADSHEET_KEY']}/export?format=csv&id={app.config['GOOGLE_SPREADSHEET_KEY']}"
+        res = requests.get(url=url)
+
+        csv_text = res.content.decode("utf-8")
+        csv_file = io.StringIO(csv_text)  # Use StringIO to treat the string as a file
 
         # Initialize an empty list to store the data
         data = {}
@@ -1815,24 +2298,28 @@ def get_data_from_sheet():
         # Convert each row into the desired structure
         for row in reader:
             item = {
-                    'english': row['english'],
-                    'danish': row['danish'],
-                    'spanish': row['spanish']
-
+                "english": row["english"],
+                "danish": row["danish"],
+                "spanish": row["spanish"],
             }
             # Append the dictionary to the list
-            data[row['key']] = (item)
+            data[row["key"]] = item
 
         # Convert the data to JSON
         json_data = json.dumps(data, ensure_ascii=False, indent=4)
 
         # Save data to the file
-        path = "/home/TereseNJ/mysite/dictionary.json" if x.python_domain else "dictionary.json"
-        with open(path, 'w', encoding='utf-8') as f:
+        path = (
+            "/home/TereseNJ/mysite/dictionary.json"
+            if x.python_domain
+            else "dictionary.json"
+        )
+        with open(path, "w", encoding="utf-8") as f:
             f.write(json_data)
 
-
-        toast_ok = render_template("___toast_ok.html", message=x.lans('dictionary_updated').capitalize())
+        toast_ok = render_template(
+            "___toast_ok.html", message=x.lans("dictionary_updated").capitalize()
+        )
 
         return f"""
         <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -1842,11 +2329,14 @@ def get_data_from_sheet():
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
-    
+
 
 ##############################
 @app.get("/8152a9ee-1f86-4a7a-9cd7-2f45b4087694ecxx523f7c-b27f-49b7-9fc1-24baaba82a5x")
@@ -1854,14 +2344,14 @@ def get_data_from_sheet():
 def get_data_from_sheet_button():
 
     ### This does the same as the previous route, without validation
-    ## For google sheet script 
+    ## For google sheet script
 
-    try:    
-        url= f"https://docs.google.com/spreadsheets/d/{app.config['GOOGLE_SPREADSHEET_KEY']}/export?format=csv&id={app.config['GOOGLE_SPREADSHEET_KEY']}"
-        res=requests.get(url=url)
-        
-        csv_text = res.content.decode('utf-8')
-        csv_file = io.StringIO(csv_text) # Use StringIO to treat the string as a file
+    try:
+        url = f"https://docs.google.com/spreadsheets/d/{app.config['GOOGLE_SPREADSHEET_KEY']}/export?format=csv&id={app.config['GOOGLE_SPREADSHEET_KEY']}"
+        res = requests.get(url=url)
+
+        csv_text = res.content.decode("utf-8")
+        csv_file = io.StringIO(csv_text)  # Use StringIO to treat the string as a file
 
         # Initialize an empty list to store the data
         data = {}
@@ -1872,35 +2362,38 @@ def get_data_from_sheet_button():
         # Convert each row into the desired structure
         for row in reader:
             item = {
-                    'english': row['english'],
-                    'danish': row['danish'],
-                    'spanish': row['spanish']
-
+                "english": row["english"],
+                "danish": row["danish"],
+                "spanish": row["spanish"],
             }
             # Append the dictionary to the list
-            data[row['key']] = (item)
+            data[row["key"]] = item
 
         # Convert the data to JSON
         json_data = json.dumps(data, ensure_ascii=False, indent=4)
 
         # Save data to the file
-        path = "/home/TereseNJ/mysite/dictionary.json" if x.python_domain else "dictionary.json"
-        with open(path, 'w', encoding='utf-8') as f:
+        path = (
+            "/home/TereseNJ/mysite/dictionary.json"
+            if x.python_domain
+            else "dictionary.json"
+        )
+        with open(path, "w", encoding="utf-8") as f:
             f.write(json_data)
 
-
         return "OK"
-        
-        
+
     except Exception as ex:
         ic(ex)
 
+
 ############3
+
 
 @app.route("/.cp-ad/control_panel", methods=["GET"])
 @x.no_cache
 def control_panel():
-    if not x.validate_admin_logged() :
+    if not x.validate_admin_logged():
         session.clear()
         return redirect(url_for("view_index"))
     try:
@@ -1910,10 +2403,14 @@ def control_panel():
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
 
 @app.get("/temp")
 @x.no_cache
@@ -1923,76 +2420,88 @@ def temp_route():
     admin["password"] = "passwordwrong"
     session["admin"] = admin
     return "ok"
-            
+
+
 ########################
 @app.route("/.cp-ad/control_panel/posts", methods=["GET"])
 @x.no_cache
 def admin_posts():
-    if not x.validate_admin_logged() :
+    if not x.validate_admin_logged():
         session.clear()
         return redirect(url_for("view_index"))
     if request.method == "GET":
         try:
-            
-            db, cursor = x.db()
-            if x.python_domain :
-                q="SELECT * FROM users JOIN posts ON user_pk = post_user_fk  ORDER BY post_created_at DESC LIMIT 11 OFFSET %s"
-            else:
-                q="CALL get_posts(%s)"
 
-            cursor.execute(q,(0,))
+            db, cursor = x.db()
+            if x.python_domain:
+                q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk  ORDER BY post_created_at DESC LIMIT 11 OFFSET %s"
+            else:
+                q = "CALL get_posts(%s)"
+
+            cursor.execute(q, (0,))
             all_posts = cursor.fetchall()
 
-
-            if len(all_posts)== 11 :
+            if len(all_posts) == 11:
                 next_page = 1
                 all_posts.pop()
-            else :
+            else:
                 next_page = 0
 
-
-            return render_template("control_panel_posts.html", tweets=all_posts, next_page=next_page)
+            return render_template(
+                "control_panel_posts.html", tweets=all_posts, next_page=next_page
+            )
         except Exception as ex:
             ic(ex)
 
             if ex.args[1] == 400:
                 toast_error = render_template("___toast_error.html", message=ex.args[0])
-                return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+                return (
+                    f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""",
+                    400,
+                )
 
-            toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+            toast_error = render_template(
+                "___toast_error.html",
+                message=x.lans("system_under_maintenance").capitalize(),
+            )
             return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
         finally:
-            if "cursor" in locals(): cursor.close()
-            if "db" in locals(): db.close()
- 
+            if "cursor" in locals():
+                cursor.close()
+            if "db" in locals():
+                db.close()
+
+
 ##############################
 @app.get("/.cp-ad/api-get-tweets-admin")
 def api_get_tweets_admin():
-    if not x.validate_admin_logged() :
+    if not x.validate_admin_logged():
         session.clear()
         return redirect(url_for("view_index"))
     try:
         next_page = int(request.args.get("page", ""))
         ic(next_page)
         db, cursor = x.db()
-        
-        if x.python_domain :
-            q="SELECT * FROM users JOIN posts ON user_pk = post_user_fk  ORDER BY post_created_at DESC LIMIT 11 OFFSET %s"
+
+        if x.python_domain:
+            q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk  ORDER BY post_created_at DESC LIMIT 11 OFFSET %s"
         else:
-            q="CALL get_posts(%s)"
-        
-        cursor.execute(q,(10*next_page,))
+            q = "CALL get_posts(%s)"
+
+        cursor.execute(q, (10 * next_page,))
         tweets = cursor.fetchall()
-        
+
         container = ""
 
         for tweet in tweets[:10]:
-            html_tweet = render_template("_tweet_admin.html", tweet = tweet)
+            html_tweet = render_template("_tweet_admin.html", tweet=tweet)
             container = container + html_tweet
 
         if len(tweets) == 11:
-            new_hyperlink = render_template("___show_more_posts_admin.html", next_page=next_page+1)
-        else :
+            new_hyperlink = render_template(
+                "___show_more_posts_admin.html", next_page=next_page + 1
+            )
+        else:
             new_hyperlink = " "
 
         return f"""
@@ -2008,22 +2517,28 @@ def api_get_tweets_admin():
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
+
 
 #############
 @app.route("/.cp-ad/confirm_block_post", methods=["POST"])
 @x.no_cache
 def confirm_block_post():
-    if not x.validate_admin_logged() :
+    if not x.validate_admin_logged():
         session.clear()
         return redirect(url_for("view_index"))
-    try: 
+    try:
         post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
         username = x.validate_check_user_username(request.args.get("username", ""))
 
@@ -2039,26 +2554,32 @@ def confirm_block_post():
         ic(ex)
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
-    
+
+
 #############
 @app.route("/.cp-ad/confirm_unblock_post", methods=["POST"])
 @x.no_cache
 def confirm_unblock_post():
-    if not x.validate_admin_logged() :
+    if not x.validate_admin_logged():
         session.clear()
         return redirect(url_for("view_index"))
-    try: 
+    try:
         post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
         username = x.validate_check_user_username(request.args.get("username", ""))
 
         tweet = {}
         tweet["post_pk"] = post_pk
         tweet["user_username"] = username
-        confirm_unblock_post = render_template("___confirm_unblock_post.html", tweet=tweet)
+        confirm_unblock_post = render_template(
+            "___confirm_unblock_post.html", tweet=tweet
+        )
 
         return f"""
         <browser mix-update="#block_confirm">{confirm_unblock_post}</browser>
@@ -2067,19 +2588,23 @@ def confirm_unblock_post():
         ic(ex)
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
 
 #############
 @app.route("/.cp-ad/confirm_post_cancel", methods=["GET"])
 @x.no_cache
 def confirm_post_cancel():
-    if not x.validate_admin_logged() :
+    if not x.validate_admin_logged():
         session.clear()
         return redirect(url_for("view_index"))
-    try: 
+    try:
         return f"""
         <browser mix-update="#block_confirm"></browser>
         """
@@ -2087,45 +2612,65 @@ def confirm_post_cancel():
         ic(ex)
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 
-#########################      
+#########################
 @app.post("/.cp-ad/api-block-post")
 def block_post():
-    if not x.validate_admin_logged() :
+    if not x.validate_admin_logged():
         session.clear()
         return redirect(url_for("view_index"))
     try:
-        
+
         post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
-        
+
         db, cursor = x.db()
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_pk = %s"
         cursor.execute(q, (post_pk,))
         tweet = cursor.fetchone()
 
-        if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
-        if tweet["post_is_blocked"] != 0 : raise Exception(x.lans('post_already_blocked').capitalize(), 400)
+        if tweet["post_deleted_at"] != 0:
+            raise Exception(x.lans("post_is_deleted").capitalize(), 400)
+        if tweet["post_is_blocked"] != 0:
+            raise Exception(x.lans("post_already_blocked").capitalize(), 400)
 
-        q="UPDATE posts SET post_is_blocked = 1 WHERE post_pk = %s"
-        cursor.execute(q, (post_pk, ))
+        q = "UPDATE posts SET post_is_blocked = 1 WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
         db.commit()
-        if cursor.rowcount != 1: raise Exception(f"{x.lans('post_couldnt_be').capitalize()} {x.lans('blocked')}", 400)
+        if cursor.rowcount != 1:
+            raise Exception(
+                f"{x.lans('post_couldnt_be').capitalize()} {x.lans('blocked')}", 400
+            )
 
         new_input = render_template("___button_unblock_post.html", tweet=tweet)
         ic(tweet)
 
         post_image = tweet["post_image_path"]
 
-        email_post_blocked = render_template("_email_post_blocked.html", tweet=tweet, lan=x.default_language, link=app.config['LINK_BASE'])
-        
-        x.send_email_post(tweet["user_email"], f"{x.lans('a_post_has_been').capitalize()} {x.lans('blocked')}", email_post_blocked, post_image) 
-       
-        toast_ok = render_template("___toast_ok.html", message=x.lans('email_sent_success').capitalize())
+        email_post_blocked = render_template(
+            "_email_post_blocked.html",
+            tweet=tweet,
+            lan=x.default_language,
+            link=app.config["LINK_BASE"],
+        )
+
+        x.send_email_post(
+            tweet["user_email"],
+            f"{x.lans('a_post_has_been').capitalize()} {x.lans('blocked')}",
+            email_post_blocked,
+            post_image,
+        )
+
+        toast_ok = render_template(
+            "___toast_ok.html", message=x.lans("email_sent_success").capitalize()
+        )
 
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -2139,46 +2684,70 @@ def block_post():
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
-#########################      
+
+#########################
 @app.post("/.cp-ad/api-unblock-post")
 def unblock_post():
-    if not x.validate_admin_logged() :
+    if not x.validate_admin_logged():
         session.clear()
         return redirect(url_for("view_index"))
     try:
-        
+
         post_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
-        
+
         db, cursor = x.db()
         q = "SELECT * FROM users JOIN posts ON user_pk = post_user_fk WHERE post_pk = %s"
         cursor.execute(q, (post_pk,))
         tweet = cursor.fetchone()
 
-        if tweet["post_deleted_at"] != 0 : raise Exception(x.lans('post_is_deleted').capitalize(), 400)
-        if tweet["post_is_blocked"] == 0 : raise Exception(f"{x.lans('post_isnt').capitalize()} {x.lans('blocked')}" , 400)
+        if tweet["post_deleted_at"] != 0:
+            raise Exception(x.lans("post_is_deleted").capitalize(), 400)
+        if tweet["post_is_blocked"] == 0:
+            raise Exception(
+                f"{x.lans('post_isnt').capitalize()} {x.lans('blocked')}", 400
+            )
 
-
-        q="UPDATE posts SET post_is_blocked = 0 WHERE post_pk = %s"
-        cursor.execute(q, (post_pk, ))
+        q = "UPDATE posts SET post_is_blocked = 0 WHERE post_pk = %s"
+        cursor.execute(q, (post_pk,))
         db.commit()
-        if cursor.rowcount != 1: raise Exception(f"{x.lans('post_couldnt_be').capitalize()} {x.lans('unblocked')}", 400)
+        if cursor.rowcount != 1:
+            raise Exception(
+                f"{x.lans('post_couldnt_be').capitalize()} {x.lans('unblocked')}", 400
+            )
 
         new_input = render_template("___button_block_post.html", tweet=tweet)
         post_image = tweet["post_image_path"]
 
-        email_post_unblocked = render_template("_email_post_unblocked.html", tweet=tweet, lan=x.default_language, link=app.config['LINK_BASE'])
-        
-        x.send_email_post(tweet["user_email"], f"{x.lans('a_post_has_been').capitalize()} {x.lans('unblocked')}", email_post_unblocked, post_image) 
-       
-        toast_ok = render_template("___toast_ok.html", message=x.lans('email_sent_success').capitalize())
+        email_post_unblocked = render_template(
+            "_email_post_unblocked.html",
+            tweet=tweet,
+            lan=x.default_language,
+            link=app.config["LINK_BASE"],
+        )
+
+        x.send_email_post(
+            tweet["user_email"],
+            f"{x.lans('a_post_has_been').capitalize()} {x.lans('unblocked')}",
+            email_post_unblocked,
+            post_image,
+        )
+
+        toast_ok = render_template(
+            "___toast_ok.html", message=x.lans("email_sent_success").capitalize()
+        )
 
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -2192,74 +2761,87 @@ def unblock_post():
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
 
 ########################
 @app.route("/.cp-ad/control_panel/users", methods=["GET"])
 @x.no_cache
 def admin_user():
-    if not x.validate_admin_logged() :
+    if not x.validate_admin_logged():
         session.clear()
         return redirect(url_for("view_index"))
     try:
         db, cursor = x.db()
 
-        if x.python_domain :
-            q="SELECT * FROM users ORDER BY user_username ASC LIMIT 11 OFFSET %s"
+        if x.python_domain:
+            q = "SELECT * FROM users ORDER BY user_username ASC LIMIT 11 OFFSET %s"
         else:
-            q="CALL get_users(%s)"
+            q = "CALL get_users(%s)"
 
-        cursor.execute(q,(0,))
+        cursor.execute(q, (0,))
         all_users = cursor.fetchall()
 
         ic(all_users)
-        if len(all_users)== 11 :
+        if len(all_users) == 11:
             next_page = 1
             all_users.pop()
-        else :
+        else:
             next_page = 0
         ic(next_page)
 
-        return render_template("control_panel_users.html", users=all_users, next_page=next_page)
+        return render_template(
+            "control_panel_users.html", users=all_users, next_page=next_page
+        )
     except Exception as ex:
         ic(ex)
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
+
 
 ##############################
 @app.get("/.cp-ad/api-get-users-admin")
 def api_get_users_admin():
-    if not x.validate_admin_logged() :
+    if not x.validate_admin_logged():
         session.clear()
         return redirect(url_for("view_index"))
     try:
         next_page = int(request.args.get("page", ""))
         ic(next_page)
         db, cursor = x.db()
-        
-        if x.python_domain :
-            q="SELECT * FROM users ORDER BY user_username ASC LIMIT 11 OFFSET %s"
+
+        if x.python_domain:
+            q = "SELECT * FROM users ORDER BY user_username ASC LIMIT 11 OFFSET %s"
         else:
-            q="CALL get_users(%s)"
-        
-        cursor.execute(q,(10*next_page,))
+            q = "CALL get_users(%s)"
+
+        cursor.execute(q, (10 * next_page,))
         users = cursor.fetchall()
-        
+
         container = ""
 
         for user in users[:10]:
@@ -2267,8 +2849,10 @@ def api_get_users_admin():
             container = container + html_user
 
         if len(users) == 11:
-            new_hyperlink = render_template("___show_more_users_admin.html", next_page=next_page+1)
-        else :
+            new_hyperlink = render_template(
+                "___show_more_users_admin.html", next_page=next_page + 1
+            )
+        else:
             new_hyperlink = " "
 
         return f"""
@@ -2284,23 +2868,28 @@ def api_get_users_admin():
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
 
 #############
 @app.route("/.cp-ad/confirm_block_user", methods=["POST"])
 @x.no_cache
 def confirm_block_user():
-    if not x.validate_admin_logged() :
+    if not x.validate_admin_logged():
         session.clear()
         return redirect(url_for("view_index"))
-    try: 
+    try:
         user_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
         username = x.validate_check_user_username(request.args.get("username", ""))
 
@@ -2316,19 +2905,23 @@ def confirm_block_user():
         ic(ex)
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
-    
+
+
 #############
 @app.route("/.cp-ad/confirm_unblock_user", methods=["POST"])
 @x.no_cache
 def confirm_unblock_user():
-    if not x.validate_admin_logged() :
+    if not x.validate_admin_logged():
         session.clear()
         return redirect(url_for("view_index"))
-    try: 
+    try:
         user_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
         username = x.validate_check_user_username(request.args.get("username", ""))
 
@@ -2336,7 +2929,9 @@ def confirm_unblock_user():
         user["user_pk"] = user_pk
         user["user_username"] = username
 
-        confirm_unblock_user = render_template("___confirm_unblock_user.html", user=user)
+        confirm_unblock_user = render_template(
+            "___confirm_unblock_user.html", user=user
+        )
 
         return f"""
         <browser mix-update="#block_confirm">{confirm_unblock_user}</browser>
@@ -2345,19 +2940,23 @@ def confirm_unblock_user():
         ic(ex)
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+
 
 #############
 @app.route("/.cp-ad/confirm_user_cancel", methods=["GET"])
 @x.no_cache
 def confirm_user_cancel():
-    if not x.validate_admin_logged() :
+    if not x.validate_admin_logged():
         session.clear()
         return redirect(url_for("view_index"))
-    try: 
+    try:
         return f"""
         <browser mix-update="#block_confirm"></browser>
         """
@@ -2365,92 +2964,61 @@ def confirm_user_cancel():
         ic(ex)
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
 
 
-#########################      
+#########################
 @app.post("/.cp-ad/api-block-user")
 def block_user():
-    if not x.validate_admin_logged() :
-        session.clear()
-        return redirect(url_for("view_index"))
-    try:        
-        user_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
-
-        db, cursor = x.db()
-        q="SELECT * FROM users WHERE user_pk = %s"
-        cursor.execute(q, (user_pk,))
-        user = cursor.fetchone()
-
-        if user["user_deleted_at"] != 0 : raise Exception(x.lans('user_is_deleted').capitalize(), 400)
-        if user["user_is_blocked"] != 0 : raise Exception(f"{x.lans('user_is_already').capitalize()} {x.lans('blocked')}", 400)
-
-        q="UPDATE users SET user_is_blocked = 1 WHERE user_pk = %s"
-        cursor.execute(q, (user_pk, ))
-        db.commit()
-        if cursor.rowcount != 1: raise Exception(f"{x.lans('user_couldnt_be').capitalize()} {x.lans('blocked')}", 400)
-
-        new_input = render_template("___button_unblock_user.html", user=user)
-        
-        email_user_blocked = render_template("_email_user_blocked.html", lan=x.default_language, link=app.config['LINK_BASE'])
-        
-        x.send_email(user["user_email"], f"{x.lans('account_has_been').capitalize()} {x.lans('blocked')}", email_user_blocked) 
-       
-        toast_ok = render_template("___toast_ok.html", message=x.lans('email_sent_success').capitalize())
-
-        return f"""
-            <browser mix-bottom="#toast">{toast_ok}</browser>
-            <browser mix-replace="#user_block_{user_pk}">
-                {new_input}
-            </browser>
-            <browser mix-update="#block_confirm"></browser>
-        """
-    except Exception as ex:
-        ic(ex)
-
-        if ex.args[1] == 400:
-            toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
-
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
-        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
-    finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
-
-#########################      
-@app.post("/.cp-ad/api-unblock-user")
-def unblock_user():
-    if not x.validate_admin_logged() :
+    if not x.validate_admin_logged():
         session.clear()
         return redirect(url_for("view_index"))
     try:
-        
         user_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
 
         db, cursor = x.db()
-        q="SELECT * FROM users WHERE user_pk = %s"
+        q = "SELECT * FROM users WHERE user_pk = %s"
         cursor.execute(q, (user_pk,))
         user = cursor.fetchone()
 
-        if user["user_deleted_at"] != 0 : raise Exception(x.lans('user_is_deleted').capitalize(), 400)
-        if user["user_is_blocked"] == 0 : raise Exception(f"{x.lans('user_isnt').capitalize()} {x.lans('blocked')}", 400)
+        if user["user_deleted_at"] != 0:
+            raise Exception(x.lans("user_is_deleted").capitalize(), 400)
+        if user["user_is_blocked"] != 0:
+            raise Exception(
+                f"{x.lans('user_is_already').capitalize()} {x.lans('blocked')}", 400
+            )
 
-        q="UPDATE users SET user_is_blocked = 0 WHERE user_pk = %s"
-        cursor.execute(q, (user_pk, ))
+        q = "UPDATE users SET user_is_blocked = 1 WHERE user_pk = %s"
+        cursor.execute(q, (user_pk,))
         db.commit()
-        if cursor.rowcount != 1: raise Exception(f"{x.lans('user_couldnt_be').capitalize()} {x.lans('unblocked')}", 400)
+        if cursor.rowcount != 1:
+            raise Exception(
+                f"{x.lans('user_couldnt_be').capitalize()} {x.lans('blocked')}", 400
+            )
 
-        new_input = render_template("___button_block_user.html", user=user)
-        
-        email_user_unblocked = render_template("_email_user_unblocked.html", lan=x.default_language, link=app.config['LINK_BASE'])
-        
-        x.send_email(user["user_email"], f"{x.lans('account_has_been').capitalize()} {x.lans('unblocked')}", email_user_unblocked) 
-       
-        toast_ok = render_template("___toast_ok.html", message=x.lans('email_sent_success').capitalize())
+        new_input = render_template("___button_unblock_user.html", user=user)
+
+        email_user_blocked = render_template(
+            "_email_user_blocked.html",
+            lan=x.default_language,
+            link=app.config["LINK_BASE"],
+        )
+
+        x.send_email(
+            user["user_email"],
+            f"{x.lans('account_has_been').capitalize()} {x.lans('blocked')}",
+            email_user_blocked,
+        )
+
+        toast_ok = render_template(
+            "___toast_ok.html", message=x.lans("email_sent_success").capitalize()
+        )
 
         return f"""
             <browser mix-bottom="#toast">{toast_ok}</browser>
@@ -2464,16 +3032,89 @@ def unblock_user():
 
         if ex.args[1] == 400:
             toast_error = render_template("___toast_error.html", message=ex.args[0])
-            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400        
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
 
-        toast_error = render_template("___toast_error.html", message=x.lans('system_under_maintenance').capitalize())
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     finally:
-        if "cursor" in locals(): cursor.close()
-        if "db" in locals(): db.close()
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
 
 
+#########################
+@app.post("/.cp-ad/api-unblock-user")
+def unblock_user():
+    if not x.validate_admin_logged():
+        session.clear()
+        return redirect(url_for("view_index"))
+    try:
 
+        user_pk = x.validate_uuid4_without_dashes(request.args.get("key", ""))
 
+        db, cursor = x.db()
+        q = "SELECT * FROM users WHERE user_pk = %s"
+        cursor.execute(q, (user_pk,))
+        user = cursor.fetchone()
 
+        if user["user_deleted_at"] != 0:
+            raise Exception(x.lans("user_is_deleted").capitalize(), 400)
+        if user["user_is_blocked"] == 0:
+            raise Exception(
+                f"{x.lans('user_isnt').capitalize()} {x.lans('blocked')}", 400
+            )
 
+        q = "UPDATE users SET user_is_blocked = 0 WHERE user_pk = %s"
+        cursor.execute(q, (user_pk,))
+        db.commit()
+        if cursor.rowcount != 1:
+            raise Exception(
+                f"{x.lans('user_couldnt_be').capitalize()} {x.lans('unblocked')}", 400
+            )
+
+        new_input = render_template("___button_block_user.html", user=user)
+
+        email_user_unblocked = render_template(
+            "_email_user_unblocked.html",
+            lan=x.default_language,
+            link=app.config["LINK_BASE"],
+        )
+
+        x.send_email(
+            user["user_email"],
+            f"{x.lans('account_has_been').capitalize()} {x.lans('unblocked')}",
+            email_user_unblocked,
+        )
+
+        toast_ok = render_template(
+            "___toast_ok.html", message=x.lans("email_sent_success").capitalize()
+        )
+
+        return f"""
+            <browser mix-bottom="#toast">{toast_ok}</browser>
+            <browser mix-replace="#user_block_{user_pk}">
+                {new_input}
+            </browser>
+            <browser mix-update="#block_confirm"></browser>
+        """
+    except Exception as ex:
+        ic(ex)
+
+        if ex.args[1] == 400:
+            toast_error = render_template("___toast_error.html", message=ex.args[0])
+            return f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""", 400
+
+        toast_error = render_template(
+            "___toast_error.html",
+            message=x.lans("system_under_maintenance").capitalize(),
+        )
+        return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
+    finally:
+        if "cursor" in locals():
+            cursor.close()
+        if "db" in locals():
+            db.close()
