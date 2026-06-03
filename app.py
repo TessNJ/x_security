@@ -566,7 +566,7 @@ def api_get_my_tweets():
         if "db" in locals(): db.close()
 
 #############
-@app.route("/confirm_hide_post", methods=["POST"])
+@app.route("/confirm_hide_post", methods=["GET"])
 @x.no_cache
 def confirm_hide_post():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
@@ -590,7 +590,7 @@ def confirm_hide_post():
         return f"""<browser mix-bottom="#toast">{ toast_error }</browser>""", 500
     
 #############
-@app.route("/confirm_show_post", methods=["POST"])
+@app.route("/confirm_show_post", methods=["GET"])
 @x.no_cache
 def confirm_show_post():
     if not x.validate_user_logged() : return x.redirect_index_mixhtlm()
