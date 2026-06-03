@@ -752,7 +752,7 @@ def api_get_my_tweets():
 
 
 #############
-@app.route("/confirm_hide_post", methods=["POST"])
+@app.route("/confirm_hide_post", methods=["GET"])
 @x.no_cache
 def confirm_hide_post():
     if not x.validate_user_logged():
@@ -781,7 +781,7 @@ def confirm_hide_post():
 
 
 #############
-@app.route("/confirm_show_post", methods=["POST"])
+@app.route("/confirm_show_post", methods=["GET"])
 @x.no_cache
 def confirm_show_post():
     if not x.validate_user_logged():
