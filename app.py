@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, session, redirect, url_for, j
 from flask_session import Session
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
-from flask_wtf.csrf import _FlaskFormCSRF, CSRFProtect
+from flask_wtf.csrf import CSRFProtect
 import x
 import time
 import uuid
@@ -12,7 +12,6 @@ import io
 import csv
 import json
 from dotenv import load_dotenv
-import secrets
 
 load_dotenv()
 
