@@ -44,7 +44,7 @@
 
         <h2 id="loginTitle">{{ x.lans('sign_up_to_x').capitalize() }}</h2>
         <form class="x-dialog__form" action="/signup/{{lan}}" mix-post autocomplete="off">
-
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
               <label for="user_email">
                 <span>

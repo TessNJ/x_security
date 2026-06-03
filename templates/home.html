@@ -100,6 +100,7 @@
 
         <aside>
             <form id="search_form" class="p-relative" >
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input mix-post="/api-search" mix-input mix-delay="1000" name="search_for" type="text" placeholder="{{x.lans('search').capitalize()}} Twitter">
                 <button class="cursor-pointer">{{x.lans('search').capitalize()}}</button>                             
             </form>

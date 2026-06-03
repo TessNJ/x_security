@@ -8,6 +8,7 @@
         class="w-8 h-8 rounded-full" alt="{{x.lans('profile_picture').capitalize()}}">
 </div>
 <form class="x-dialog__form" action="{{ url_for('api_update_profile') }}" mix-post autocomplete="off">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div>
         <label for="user_avatar_path">
             <span> {{x.lans('profile_picture').capitalize()}}</span>
