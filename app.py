@@ -63,7 +63,7 @@ def view_index():
 ##############################
 @app.get("/.well-known/security.txt")
 def securitytxt():
-    security = open("./static/security.txt")
+    security = open("./security.txt")
     return security
 
 
