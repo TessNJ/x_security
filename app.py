@@ -46,6 +46,19 @@ app.config["GOOGLE_SPREADSHEET_KEY"] = os.getenv("GOOGLE_SPREADSHEET_KEY")
 app.config["LINK_BASE"] = os.getenv("LINK_BASE")
 
 
+@app.after_request
+def add_security_headers(response):
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' https://unpkg.com; "
+        "style-src 'self' https://cdnjs.cloudflare.com; "
+        "font-src 'self' https://cdnjs.cloudflare.com; "
+        "img-src 'self' data:; "
+        "frame-ancestors 'none';"
+    )
+    return response
+
+
 ##############################
 ##############################
 ##############################
