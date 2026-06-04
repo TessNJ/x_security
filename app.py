@@ -537,6 +537,7 @@ def home():
     try:
         user = session.get("user", "")
 
+        ic(user)
         next_page = 2
 
         db, cursor = x.db()
@@ -549,7 +550,7 @@ def home():
             cursor.execute(q, (user["user_pk"], tweet["post_pk"]))
             tweet["liked"] = bool(cursor.fetchone()["liked"])
 
-        ic(tweets)
+        # ic(tweets)
 
         q = "SELECT * FROM trends ORDER BY RAND() LIMIT 3"
         cursor.execute(q)

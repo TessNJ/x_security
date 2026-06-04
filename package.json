@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "flask-wtf": "^0.0.1"
+  }
+}
