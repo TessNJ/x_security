@@ -5,8 +5,11 @@
         <p>{{x.lans('user_will_be_notified').capitalize()}}</p>
         <div>
             <a mix-get href="/.cp-ad/confirm_post_cancel?key={{tweet.post_pk}}">{{x.lans('cancel').capitalize()}}</a>
-            <a mix-post href="/.cp-ad/api-block-post?key={{tweet.post_pk}}" mix-default="{{x.lans('block').capitalize()}}" 
-            mix-await="{{x.lans('blocking').capitalize()}}...">{{x.lans('block').capitalize()}}</a>
+            <form action="/.cp-ad/api-block-post?key={{tweet.post_pk}}" mix-post>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button mix-default="{{x.lans('block').capitalize()}}" 
+            mix-await="{{x.lans('blocking').capitalize()}}...">{{x.lans('block').capitalize()}}</button>
+            </form>
         </div>
     </div>
 </div>
