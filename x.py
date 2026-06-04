@@ -214,11 +214,13 @@ def send_email_post(to_email, subject, template, post_image):
         message["Subject"] = subject
 
         message.attach(MIMEText(template, "html"))
+        post_upload_folder = (
+            "/home/TereseNJ/mysite/static/images/" if python_domain else "./static/images/")
 
 
         if post_image != "":
-            ic('/static/images/'+post_image)
-            path = './static/images/'+post_image
+            ic(post_upload_folder+post_image)
+            path = post_upload_folder+post_image
             
             fp = open(path, 'rb')
             ic(fp)

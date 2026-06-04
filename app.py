@@ -2636,10 +2636,10 @@ def block_post():
         cursor.execute(q, (post_pk,))
         tweet = cursor.fetchone()
 
-        if tweet["post_deleted_at"] != 0:
-            raise Exception(x.lans("post_is_deleted").capitalize(), 400)
         if tweet["post_is_blocked"] != 0:
             raise Exception(x.lans("post_already_blocked").capitalize(), 400)
+        if tweet["post_deleted_at"] != 0:
+            raise Exception(x.lans("post_is_deleted").capitalize(), 400)
 
         q = "UPDATE posts SET post_is_blocked = 1 WHERE post_pk = %s"
         cursor.execute(q, (post_pk,))
@@ -2713,12 +2713,12 @@ def unblock_post():
         cursor.execute(q, (post_pk,))
         tweet = cursor.fetchone()
 
-        if tweet["post_deleted_at"] != 0:
-            raise Exception(x.lans("post_is_deleted").capitalize(), 400)
         if tweet["post_is_blocked"] == 0:
             raise Exception(
                 f"{x.lans('post_isnt').capitalize()} {x.lans('blocked')}", 400
             )
+        if tweet["post_deleted_at"] != 0:
+            raise Exception(x.lans("post_is_deleted").capitalize(), 400)
 
         q = "UPDATE posts SET post_is_blocked = 0 WHERE post_pk = %s"
         cursor.execute(q, (post_pk,))
