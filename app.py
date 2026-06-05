@@ -1026,6 +1026,8 @@ def api_update_profile():
         uploaded_file = request.files.get("user_avatar_path", "")
         if uploaded_file:
             _, ext = os.path.splitext(uploaded_file.filename)
+            if ext != any((".png", ".jpg", ".jpeg")):
+                raise Exception(x.lans("file_not_allowed").capitalize(), 400)
             new_name = uuid.uuid4().hex + ext
             file_path = os.path.join(app.config["UPLOAD_FOLDER"], new_name)
             uploaded_file.save(file_path)
@@ -1296,6 +1298,8 @@ def api_create_post():
         uploaded_file = request.files.get("post_image_attach", "")
         if uploaded_file:
             _, ext = os.path.splitext(uploaded_file.filename)
+            if ext != any((".png", ".jpg", ".jpeg")):
+                raise Exception(x.lans("file_not_allowed").capitalize(), 400)
             post_image_path = uuid.uuid4().hex + ext
             file_path = os.path.join(app.config["POST_UPLOAD_FOLDER"], post_image_path)
             uploaded_file.save(file_path)
@@ -1367,6 +1371,13 @@ def api_create_post():
                 message=f"{x.lans('post_must_be')} - {x.POST_MIN_LEN} {x.lans('to')} {x.POST_MAX_LEN} {x.lans('characters')}",
             )
             return f"""<browser mix-bottom="#toast">{toast_error}</browser>"""
+        
+        if ex.args[1] == 400:
+                toast_error = render_template("___toast_error.html", message=ex.args[0])
+                return (
+                    f"""<mixhtml mix-update="#toast">{ toast_error }</mixhtml>""",
+                    400,
+                )
 
         # System or developer error
         toast_error = render_template(
@@ -1455,6 +1466,8 @@ def api_update_post():
 
             if imgState == "newIMG":
                 _, ext = os.path.splitext(uploaded_file.filename)
+                if ext != any((".png", ".jpg", ".jpeg")):
+                    raise Exception(x.lans("file_not_allowed").capitalize(), 400)
                 new_name = uuid.uuid4().hex + ext
                 file_path = os.path.join(app.config["POST_UPLOAD_FOLDER"], new_name)
                 uploaded_file.save(file_path)

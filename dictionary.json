@@ -40,9 +40,9 @@
         "spanish": "¿Estás seguro de que deseas desbloquear"
     },
     "attach_image": {
-        "english": "attach image. PNG and JPEG only",
-        "danish": "tilføj billede. Kun PNG og JPEG",
-        "spanish": "adjuntar imagen. Solo PNG y JPEG"
+        "english": "attach image. PNG, JPG and JPEG only",
+        "danish": "tilføj billede. Kun PNG, JPG og JPEG",
+        "spanish": "adjuntar imagen. Solo PNG, JPG y JPEG"
     },
     "block": {
         "english": "block",
@@ -883,5 +883,10 @@
         "english": "post is no longer hidden",
         "danish": "indlæg er ikke længere skjult",
         "spanish": "la publicación ya no está oculta."
+    },
+    "file_not_allowed": {
+        "english": "selected file type is not allowed",
+        "danish": "den valgte filtype er ikke tilladt",
+        "spanish": "el tipo de archivo seleccionado no está permitido"
     }
 }
